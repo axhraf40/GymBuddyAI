@@ -1,54 +1,52 @@
-# GymBuddy AI — Interactive Gym & Nutrition Coach Chatbot
+# GymBuddy AI — Gym & Nutrition Coach Chatbot
 
-> **New developer or AI model?** Read [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md) first for the full project brief, scope, architecture decisions, and changelog.
+> **New developer or AI model?** Read [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md) first: scope, decisions and changelog.
 
-GymBuddy AI is a full-stack web platform combining:
-1. **An intelligent RAG chatbot** (FastAPI + BM25 knowledge retrieval + deterministic nutrition calculator + input/output safety guardrails + Gemini/OpenRouter/Mock LLM support).
-2. **An interactive anatomical muscle map** (Next.js + hand-crafted front/back SVG): click any muscle to inspect equipment-filtered exercises and ask targeted workout questions.
-3. **A daily coaching n8n automation** (`automation/`) that reads opted-in users from the API, generates a morning coaching email with an LLM, and sends it via SMTP.
-4. **Engineering documentation & evaluation suite** (`docs/REPORT.md`, `docs/USER_GUIDE.md`, `docs/DEPLOYMENT.md`, `backend/eval/`).
+**Live:** https://gymbuddy-ai-phi.vercel.app · **API:** https://gymbuddy-api-zeta.vercel.app/docs
 
----
+GymBuddy AI is a web platform built around a RAG chatbot for gym beginners:
+1. **AI coach chat** (FastAPI): input guardrails → BM25 retrieval over 281 curated documents → LLM (OpenRouter Auto router + 5 selectable models, with fallback) → output safety checks. Profile, daily targets, selected muscle and the last 10 messages are sent as context.
+2. **Interactive muscle map** (hand-made SVG, front/back, 15 muscles) with animated exercise demos.
+3. **Platform pages:** accounts (`/login`), coach (`/coach`), in-gym chrono (`/gym`), nutrition with AI fridge chef + generated dish picture, restaurants nearby and 147 recipes (`/nutrition`), plans (`/pricing`).
+4. **Photo & barcode:** identify a machine, a plate or a barcode from a photo; live barcode scanner (Open Food Facts).
+5. **n8n automations** (`automation/`): daily coaching e-mail, CRM workflow, Telegram coach.
+6. **Docs:** report, user guide, test plan, deployment (`docs/`).
 
-## Quick Start (Local)
+## Quick start (local, Windows PowerShell)
 
-### 1. Backend (FastAPI)
-```bash
+### Backend
+```powershell
 cd backend
 python -m venv .venv
-# Windows PowerShell:
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env   # optional: set LLM_PROVIDER=gemini and GEMINI_API_KEY=...
+copy .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
-- API runs at `http://localhost:8000`
-- Interactive OpenAPI docs at `http://localhost:8000/docs`
-- By default (`LLM_PROVIDER=mock`), the app runs **100% offline** using the curated knowledge base without needing an API key.
+- With `LLM_PROVIDER=mock` (default) everything runs offline from the knowledge base, no key needed.
+- For real AI answers set `LLM_PROVIDER=openrouter` and `OPENROUTER_API_KEY` in `backend/.env`.
+- API docs: http://localhost:8000/docs · health: http://localhost:8000/api/health
 
-### 2. Frontend (Next.js)
-```bash
+### Frontend
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
-- Web app runs at `http://localhost:3000`
-- Connects to `http://localhost:8000` by default (override with `NEXT_PUBLIC_API_URL` in `frontend/.env.local`).
+Open http://localhost:3000. The Next.js server forwards `/api/*` to `http://127.0.0.1:8000` (change with `BACKEND_INTERNAL_URL`).
 
-### 3. Tests & Evaluation Benchmark
-```bash
+### Tests
+```powershell
 cd backend
-.\.venv\Scripts\python -m pytest -v
-.\.venv\Scripts\python eval\run_eval.py
+.\.venv\Scripts\python -m pytest -q        # 32 tests
+.\.venv\Scripts\python eval\run_eval.py     # 16-question chatbot evaluation
+cd ..\frontend
+npm run build                               # type check + production build
 ```
+Latest results are in [`docs/TEST_PLAN.md`](./docs/TEST_PLAN.md).
 
----
-
-## Project Structure
-- [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md) — Single source of truth for all decisions and requirements
-- [`backend/`](./backend/) — FastAPI API, RAG engine, guardrails, nutrition calculator, pytest & eval suite
-- [`frontend/`](./frontend/) — Next.js + Tailwind web platform with the interactive muscle map
-- [`automation/`](./automation/) — Exported n8n workflow JSON, README, architecture & credentials registry
-- [`docs/REPORT.md`](./docs/REPORT.md) — PFE-style engineering report (7 required steps)
-- [`docs/USER_GUIDE.md`](./docs/USER_GUIDE.md) — User guide & testing instructions for evaluators
-- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Deployment strategy (Render + Vercel + Postgres)
+## Project structure
+- `backend/` — FastAPI API (`app/`), knowledge base (`app/data/`), tests, evaluation, Vercel entry (`api/index.py`)
+- `frontend/` — Next.js + Tailwind (`src/app/*` pages, `src/components/*`)
+- `automation/` — n8n workflows (JSON), README with architecture, credentials registry, transferability test
+- `docs/REPORT.md` — engineering report (7 steps) · `docs/USER_GUIDE.md` — user guide + evaluator checklist · `docs/TEST_PLAN.md` — tests and results · `docs/DEPLOYMENT.md` — deployment strategy

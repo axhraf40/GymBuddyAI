@@ -128,6 +128,16 @@ export default function HomePage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
+  // Close the exercise demo modal with Escape
+  useEffect(() => {
+    if (!activeExercise) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveExercise(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [activeExercise]);
+
   // Close model popover on outside click or Escape
   useEffect(() => {
     if (!modelMenuOpen) return;
