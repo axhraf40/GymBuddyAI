@@ -1,0 +1,4 @@
+user_id,name,email,plan,segment,lead_score,churn_risk,goal,equipment,calories_target,protein_g,today_workout,last_contacted,ai_used,status,next_action
+usr-demo-001,Achraf Benali,achraf.demo@example.com,pro,VIP_PRO,92,Low,build_muscle,a full gym,2650,150,Push,2026-11-21T07:30:00Z,true,Active,Weekly progress check-in
+usr-demo-002,Sara El Amrani,sara.demo@example.com,free,HOT_LEAD,78,Medium,lose_fat,home with dumbbells,1720,130,Upper,2026-11-21T07:30:00Z,true,Trial Eligible,Send Pro Smart Chrono invite
+usr-demo-003,Youssef Tazi,youssef.demo@example.com,free,NURTURE,45,Medium,recomp,home with no equipment (bodyweight),2180,140,Full body A,2026-11-21T07:30:00Z,true,Onboarding,Encourage first Muscle Map workout

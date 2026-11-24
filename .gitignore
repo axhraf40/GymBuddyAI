@@ -1,0 +1,22 @@
+# Python
+backend/.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+backend/*.db
+backend/.env
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+.backup-*/
+
+# Build/deploy metadata
+*.tsbuildinfo
+.vercel/

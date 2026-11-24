@@ -1,0 +1,1957 @@
+[
+  {
+    "id": "bench_press",
+    "name": "Barbell Bench Press",
+    "muscle": "chest",
+    "secondary": [
+      "triceps",
+      "shoulders"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3-4 sets of 6-10 reps, rest 2 min",
+    "instructions": "Lie on a flat bench, eyes under the bar. Grip slightly wider than shoulders. Lower the bar to mid-chest with elbows at about 45 degrees, then press up until arms are straight.",
+    "tips": "Keep shoulder blades squeezed together and feet flat on the floor. Use a spotter or safety pins for heavy sets.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0025-EIeI8Vf.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0025-EIeI8Vf.gif",
+    "dataset_name": "barbell bench press",
+    "steps_en": [
+      "Lie flat on a bench with your feet flat on the ground and your back pressed against the bench.",
+      "Grasp the barbell with an overhand grip slightly wider than shoulder-width apart.",
+      "Lift the barbell off the rack and hold it directly above your chest with your arms fully extended.",
+      "Lower the barbell slowly towards your chest, keeping your elbows tucked in.",
+      "Pause for a moment when the barbell touches your chest."
+    ],
+    "steps_fr": [
+      "Allonge-toi à plat sur un banc, les pieds à plat au sol et le dos plaqué contre le banc.",
+      "Saisis la barre avec une prise en pronation un peu plus large que la largeur des épaules.",
+      "Soulève la barre du rack et maintiens-la directement au-dessus de ta poitrine, les bras complètement tendus.",
+      "Abaisse lentement la barre vers ta poitrine, en gardant tes coudes serrés.",
+      "Marque une pause lorsque la barre touche ta poitrine."
+    ]
+  },
+  {
+    "id": "db_bench_press",
+    "name": "Dumbbell Bench Press",
+    "muscle": "chest",
+    "secondary": [
+      "triceps",
+      "shoulders"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3-4 sets of 8-12 reps, rest 90 s",
+    "instructions": "Lie on a bench with a dumbbell in each hand at chest level. Press the dumbbells up until arms are straight, then lower slowly until you feel a stretch in the chest.",
+    "tips": "Dumbbells allow a bigger range of motion and fix left/right imbalances.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0289-SpYC0Kp.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0289-SpYC0Kp.gif",
+    "dataset_name": "dumbbell bench press",
+    "steps_en": [
+      "Lie flat on a bench with your feet flat on the ground and your back pressed against the bench.",
+      "Hold a dumbbell in each hand, with your palms facing forward and your arms extended above your chest.",
+      "Lower the dumbbells slowly to the sides of your chest, keeping your elbows at a 90-degree angle.",
+      "Pause for a moment, then push the dumbbells back up to the starting position, fully extending your arms.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Allonge-toi à plat sur un banc, les pieds à plat au sol et le dos plaqué contre le banc.",
+      "Tiens un haltère dans chaque main, les paumes tournées vers l'avant et les bras étendus au-dessus de ta poitrine.",
+      "Abaisse lentement les haltères sur les côtés de ta poitrine, en gardant tes coudes à un angle de 90 degrés.",
+      "Marque une pause, puis repousse les haltères vers le haut jusqu'à la position de départ, en tendant complètement tes bras.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "incline_db_press",
+    "name": "Incline Dumbbell Press",
+    "muscle": "chest",
+    "secondary": [
+      "shoulders",
+      "triceps"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 8-12 reps, rest 90 s",
+    "instructions": "Set the bench to 30-45 degrees. Press the dumbbells from upper chest to above the eyes, lower with control.",
+    "tips": "Targets the upper chest. Do not set the bench too high or the shoulders take over.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0314-ns0SIbU.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0314-ns0SIbU.gif",
+    "dataset_name": "dumbbell incline bench press",
+    "steps_en": [
+      "Set up an incline bench at a 45-degree angle.",
+      "Sit on the bench with your feet flat on the ground and your back pressed firmly against the bench.",
+      "Hold a dumbbell in each hand, palms facing forward, and lift them to shoulder height.",
+      "Slowly lower the dumbbells to the sides of your chest, keeping your elbows at a 90-degree angle.",
+      "Push the dumbbells back up to the starting position, fully extending your arms."
+    ],
+    "steps_fr": [
+      "Installe un banc incliné à un angle de 45 degrés.",
+      "Assieds-toi sur le banc, les pieds à plat sur le sol et le dos pressé fermement contre le banc.",
+      "Tiens un haltère dans chaque main, les paumes tournées vers l'avant, et lève-les à hauteur des épaules.",
+      "Abaisse lentement les haltères vers les côtés de ta poitrine, en gardant tes coudes à un angle de 90 degrés.",
+      "Repousse les haltères vers le haut jusqu'à la position de départ en tendant complètement tes bras."
+    ]
+  },
+  {
+    "id": "push_up",
+    "name": "Push-Up",
+    "muscle": "chest",
+    "secondary": [
+      "triceps",
+      "shoulders",
+      "abs"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets to 1-2 reps before failure, rest 60-90 s",
+    "instructions": "Hands slightly wider than shoulders, body in a straight line from head to heels. Lower your chest to just above the floor, then push back up.",
+    "tips": "Too hard? Do them on your knees or with hands on a bench. Too easy? Raise your feet or slow down the lowering phase.",
+    "avoid_if": [
+      "wrist"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0662-I4hDWkc.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0662-I4hDWkc.gif",
+    "dataset_name": "push-up",
+    "steps_en": [
+      "Start in a high plank position with your hands slightly wider than shoulder-width apart and your feet together.",
+      "Engage your core and lower your body towards the ground by bending your elbows, keeping your body in a straight line.",
+      "Pause for a moment when your chest is just above the ground, then push yourself back up to the starting position by straightening your arms.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Commence en position de planche haute, les mains un peu plus écartées que la largeur des épaules et les pieds joints.",
+      "Gaine ta sangle abdominale et abaisse ton corps vers le sol en pliant tes coudes, en gardant ton corps en ligne droite.",
+      "Marque une pause lorsque ta poitrine est juste au-dessus du sol, puis repousse-toi vers le haut pour revenir à la position de départ en tendant tes bras.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "cable_fly",
+    "name": "Cable Fly",
+    "muscle": "chest",
+    "secondary": [
+      "shoulders"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 12-15 reps, rest 60 s",
+    "instructions": "Stand between two cable pulleys set at shoulder height. With a slight bend in the elbows, bring your hands together in front of your chest in a hugging motion, then return slowly.",
+    "tips": "Focus on squeezing the chest; keep the elbow angle fixed.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0227-Pr9Rhf4.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0227-Pr9Rhf4.gif",
+    "dataset_name": "cable standing fly",
+    "steps_en": [
+      "Attach the handles to the cables at chest height.",
+      "Stand with your feet shoulder-width apart, facing away from the cable machine.",
+      "Grasp the handles with an overhand grip, palms facing forward.",
+      "Step forward slightly to create tension in the cables.",
+      "Keep your core engaged and your back straight throughout the exercise."
+    ],
+    "steps_fr": [
+      "Fixe les poignées aux câbles à hauteur de la poitrine.",
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, dos à la machine à câble.",
+      "Saisis les poignées avec une prise en pronation, les paumes tournées vers l'avant.",
+      "Avance légèrement pour créer de la tension dans les câbles.",
+      "Garde ta sangle abdominale gainée et le dos droit tout au long de l'exercice."
+    ]
+  },
+  {
+    "id": "overhead_press",
+    "name": "Standing Overhead Press",
+    "muscle": "shoulders",
+    "secondary": [
+      "triceps",
+      "traps",
+      "abs"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3-4 sets of 6-8 reps, rest 2 min",
+    "instructions": "Hold the barbell at shoulder height, grip just outside the shoulders. Brace your core and press the bar straight overhead, moving your head back slightly to let the bar pass.",
+    "tips": "Squeeze glutes and abs so you don't arch the lower back.",
+    "avoid_if": [
+      "shoulder",
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0091-kTbSH9h.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0091-kTbSH9h.gif",
+    "dataset_name": "barbell seated overhead press",
+    "steps_en": [
+      "Sit on a bench with your back straight and feet flat on the ground.",
+      "Hold the barbell with an overhand grip, slightly wider than shoulder-width apart.",
+      "Lift the barbell off the rack and bring it to shoulder level, with your elbows bent and palms facing forward.",
+      "Press the barbell overhead by extending your arms fully.",
+      "Pause for a moment at the top, then slowly lower the barbell back to shoulder level."
+    ],
+    "steps_fr": [
+      "Assieds-toi sur un banc, le dos droit et les pieds à plat sur le sol.",
+      "Tiens la barre en prise pronation, un peu plus écartée que la largeur des épaules.",
+      "Soulève la barre du rack et amène-la à hauteur des épaules, les coudes fléchis et les paumes tournées vers l'avant.",
+      "Développe la barre au-dessus de ta tête en tendant complètement tes bras.",
+      "Marque une pause en haut, puis abaisse lentement la barre à hauteur des épaules."
+    ]
+  },
+  {
+    "id": "db_shoulder_press",
+    "name": "Seated Dumbbell Shoulder Press",
+    "muscle": "shoulders",
+    "secondary": [
+      "triceps"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 8-12 reps, rest 90 s",
+    "instructions": "Sit on a bench with back support. Hold dumbbells at shoulder height, palms forward, and press them overhead until arms are almost straight.",
+    "tips": "Do not bang the dumbbells together at the top; keep control.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0405-znQUdHY.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0405-znQUdHY.gif",
+    "dataset_name": "dumbbell seated shoulder press",
+    "steps_en": [
+      "Sit on a bench with a dumbbell in each hand, resting on your thighs.",
+      "Raise the dumbbells to shoulder height, palms facing forward.",
+      "Press the dumbbells upward until your arms are fully extended overhead.",
+      "Pause for a moment at the top, then slowly lower the dumbbells back to shoulder height.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Assieds-toi sur un banc avec un haltère dans chaque main, posés sur tes cuisses.",
+      "Lève les haltères à hauteur des épaules, paumes tournées vers l'avant.",
+      "Pousse les haltères vers le haut jusqu'à ce que tes bras soient complètement tendus au-dessus de ta tête.",
+      "Marque une pause en haut, puis abaisse lentement les haltères à hauteur des épaules.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "lateral_raise",
+    "name": "Dumbbell Lateral Raise",
+    "muscle": "shoulders",
+    "secondary": [
+      "traps"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3-4 sets of 12-20 reps, rest 60 s",
+    "instructions": "Stand with dumbbells at your sides. With a slight bend in the elbows, raise your arms out to the sides until they reach shoulder height, then lower slowly.",
+    "tips": "Use light weights; lead with the elbows. This builds the side delts for wider-looking shoulders.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0334-DsgkuIt.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0334-DsgkuIt.gif",
+    "dataset_name": "dumbbell lateral raise",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and hold a dumbbell in each hand, palms facing your body.",
+      "Keep your back straight and engage your core.",
+      "Raise your arms out to the sides until they are parallel to the floor, keeping a slight bend in your elbows.",
+      "Pause for a moment at the top, then slowly lower your arms back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et tiens un haltère dans chaque main, paumes tournées vers ton corps.",
+      "Garde le dos droit et gaine ta sangle abdominale.",
+      "Lève tes bras sur les côtés jusqu'à ce qu'ils soient parallèles au sol, en gardant une légère flexion dans tes coudes.",
+      "Marque une pause en haut, puis abaisse lentement tes bras pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "face_pull",
+    "name": "Face Pull",
+    "muscle": "shoulders",
+    "secondary": [
+      "upper_back",
+      "traps"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 12-15 reps, rest 60 s",
+    "instructions": "Set a rope on a cable at face height. Pull the rope towards your face, separating the hands and pulling the elbows high and back.",
+    "tips": "Great for rear delts and shoulder health, especially if you bench a lot.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0202-yUdIGNs.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0202-yUdIGNs.gif",
+    "dataset_name": "cable rear delt row (stirrups)",
+    "steps_en": [
+      "Attach a stirrup handle to a low cable pulley and stand facing the machine.",
+      "Grasp the handle with your left hand and take a step back with your right foot, positioning your body at a slight angle.",
+      "Bend your knees slightly and hinge forward at the hips, keeping your back straight and your core engaged.",
+      "With your left arm extended and your palm facing down, pull the handle towards your chest by retracting your shoulder blade.",
+      "Pause for a moment at the top of the movement, squeezing your shoulder blade."
+    ],
+    "steps_fr": [
+      "Fixe une poignée étrier à une poulie basse du câble et tiens-toi face à la machine.",
+      "Saisis la poignée avec ta main gauche et fais un pas en arrière avec ton pied droit, en plaçant ton corps légèrement en angle.",
+      "Fléchis légèrement les genoux et bascule vers l'avant au niveau des hanches en gardant le dos droit et ta sangle abdominale gainée.",
+      "Avec ton bras gauche tendu et ta paume tournée vers le bas, tire la poignée vers ta poitrine en rétractant ton omoplate.",
+      "Marque une pause en haut du mouvement, en contractant ton omoplate."
+    ]
+  },
+  {
+    "id": "pike_push_up",
+    "name": "Pike Push-Up",
+    "muscle": "shoulders",
+    "secondary": [
+      "triceps"
+    ],
+    "equipment": [
+      "bodyweight"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 6-12 reps, rest 90 s",
+    "instructions": "Start in a push-up position and walk your feet forward so your hips are high (upside-down V). Bend the elbows to lower your head towards the floor, then push back up.",
+    "tips": "The bodyweight alternative to the shoulder press. Raise the feet on a chair to make it harder.",
+    "avoid_if": [
+      "shoulder",
+      "wrist"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1296-sVvXT5J.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1296-sVvXT5J.gif",
+    "dataset_name": "exercise ball pike push up",
+    "steps_en": [
+      "Start in a push-up position with your hands on the floor and your shins resting on the stability ball.",
+      "Engage your core and lift your hips up towards the ceiling, rolling the ball towards your hands.",
+      "Keep your legs straight and your body in a pike position, forming an inverted V shape.",
+      "Bend your elbows and lower your upper body towards the floor, keeping your head in line with your hands.",
+      "Push through your hands and extend your arms to return to the starting position."
+    ],
+    "steps_fr": [
+      "Commence en position de pompe, les mains sur le sol et les tibias posés sur le ballon de stabilité.",
+      "Gaine ta sangle abdominale et lève tes hanches vers le plafond, en faisant rouler le ballon vers tes mains.",
+      "Garde les jambes tendues et le corps en position de pique, formant un V inversé.",
+      "Plie tes coudes et abaisse le haut de ton corps vers le sol en gardant ta tête alignée avec tes mains.",
+      "Pousse à travers tes mains et étends tes bras pour revenir à la position de départ."
+    ]
+  },
+  {
+    "id": "barbell_curl",
+    "name": "Barbell Curl",
+    "muscle": "biceps",
+    "secondary": [
+      "forearms"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 8-12 reps, rest 60-90 s",
+    "instructions": "Stand holding a barbell with palms facing forward, hands shoulder-width apart. Curl the bar up to your shoulders keeping elbows close to your body, then lower slowly.",
+    "tips": "Don't swing your back to lift the weight.",
+    "avoid_if": [
+      "elbow"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0031-25GPyDY.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0031-25GPyDY.gif",
+    "dataset_name": "barbell curl",
+    "steps_en": [
+      "Stand up straight with your feet shoulder-width apart and hold a barbell with an underhand grip, palms facing forward.",
+      "Keep your elbows close to your torso and exhale as you curl the weights while contracting your biceps.",
+      "Continue to raise the bar until your biceps are fully contracted and the bar is at shoulder level.",
+      "Hold the contracted position for a brief pause as you squeeze your biceps.",
+      "Inhale as you slowly begin to lower the bar back to the starting position."
+    ],
+    "steps_fr": [
+      "Tiens-toi bien droit, les pieds écartés à la largeur des épaules, et tiens une barre en prise supination, les paumes tournées vers l'avant.",
+      "Garde tes coudes près de ton torse et expire pendant que tu enroules les poids en contractant tes biceps.",
+      "Continue à lever la barre jusqu'à ce que tes biceps soient complètement contractés et que la barre soit à hauteur d'épaule.",
+      "Maintiens la position contractée pendant une brève pause en contractant tes biceps.",
+      "Inspire pendant que tu commences lentement à abaisser la barre jusqu'à la position de départ."
+    ]
+  },
+  {
+    "id": "db_curl",
+    "name": "Dumbbell Curl",
+    "muscle": "biceps",
+    "secondary": [
+      "forearms"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps, rest 60 s",
+    "instructions": "Hold a dumbbell in each hand, palms facing forward. Curl the weights up while keeping the elbows fixed at your sides, then lower with control.",
+    "tips": "Rotate the pinky up at the top for a stronger biceps squeeze.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0294-NbVPDMW.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0294-NbVPDMW.gif",
+    "dataset_name": "dumbbell biceps curl",
+    "steps_en": [
+      "Stand up straight with a dumbbell in each hand, palms facing forward and arms fully extended.",
+      "Keeping your upper arms stationary, exhale and curl the weights while contracting your biceps.",
+      "Continue to raise the weights until your biceps are fully contracted and the dumbbells are at shoulder level.",
+      "Hold the contracted position for a brief pause as you squeeze your biceps.",
+      "Inhale and slowly begin to lower the dumbbells back to the starting position."
+    ],
+    "steps_fr": [
+      "Tiens-toi bien droit avec un haltère dans chaque main, les paumes tournées vers l'avant et les bras complètement tendus.",
+      "En gardant le haut des bras immobile, expire et fléchis les poids en contractant tes biceps.",
+      "Continue à lever les poids jusqu'à ce que tes biceps soient complètement contractés et que les haltères soient à hauteur d'épaule.",
+      "Maintiens la position contractée pendant une brève pause en contractant tes biceps.",
+      "Inspire et commence lentement à abaisser les haltères jusqu'à la position de départ."
+    ]
+  },
+  {
+    "id": "hammer_curl",
+    "name": "Hammer Curl",
+    "muscle": "biceps",
+    "secondary": [
+      "forearms"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps, rest 60 s",
+    "instructions": "Hold dumbbells with palms facing each other (neutral grip) and curl them up without rotating the wrists.",
+    "tips": "Also works the brachialis and forearms, making the arm look thicker.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0313-slDvUAU.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0313-slDvUAU.gif",
+    "dataset_name": "dumbbell hammer curl",
+    "steps_en": [
+      "Stand up straight with a dumbbell in each hand, palms facing your torso.",
+      "Keep your elbows close to your torso and rotate the palms of your hands until they are facing forward.",
+      "This will be your starting position.",
+      "Now, keeping the upper arms stationary, exhale and curl the weights while contracting your biceps.",
+      "Continue to raise the weights until your biceps are fully contracted and the dumbbells are at shoulder level."
+    ],
+    "steps_fr": [
+      "Tiens-toi bien droit avec un haltère dans chaque main, les paumes tournées vers ton torse.",
+      "Garde tes coudes près de ton torse et tourne les paumes de tes mains jusqu'à ce qu'elles soient tournées vers l'avant.",
+      "Ce sera ta position de départ.",
+      "Maintenant, en gardant le haut des bras immobile, expire et enroule les poids en contractant tes biceps.",
+      "Continue à lever les poids jusqu'à ce que tes biceps soient complètement contractés et que les haltères soient à hauteur d'épaule."
+    ]
+  },
+  {
+    "id": "chin_up",
+    "name": "Chin-Up",
+    "muscle": "biceps",
+    "secondary": [
+      "upper_back"
+    ],
+    "equipment": [
+      "gym",
+      "bodyweight"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 5-10 reps, rest 2 min",
+    "instructions": "Hang from a bar with palms facing you, hands shoulder-width apart. Pull yourself up until your chin is over the bar, then lower slowly.",
+    "tips": "Use a resistance band or do slow negatives if you can't do one yet.",
+    "avoid_if": [
+      "elbow",
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1326-T2mxWqc.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1326-T2mxWqc.gif",
+    "dataset_name": "chin-up",
+    "steps_en": [
+      "Hang from a pull-up bar with your palms facing towards you and your hands shoulder-width apart.",
+      "Engage your core and pull your body up towards the bar, leading with your chest.",
+      "Continue pulling until your chin is above the bar.",
+      "Pause for a moment at the top, then slowly lower your body back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Suspends-toi à une barre de traction, les paumes tournées vers toi et les mains écartées à la largeur des épaules.",
+      "Gaine ta sangle abdominale et tire ton corps vers la barre, en menant avec ta poitrine.",
+      "Continue à tirer jusqu'à ce que ton menton soit au-dessus de la barre.",
+      "Marque une pause en haut, puis abaisse lentement ton corps pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "triceps_pushdown",
+    "name": "Cable Triceps Pushdown",
+    "muscle": "triceps",
+    "secondary": [],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 60 s",
+    "instructions": "Stand facing a cable machine with a rope or bar attached high. Keeping elbows at your sides, push down until the arms are fully straight, then return slowly.",
+    "tips": "Only the forearms should move.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0201-3ZflifB.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0201-3ZflifB.gif",
+    "dataset_name": "cable pushdown",
+    "steps_en": [
+      "Attach a straight bar to a high pulley cable machine.",
+      "Stand facing the machine with your feet shoulder-width apart and a slight bend in your knees.",
+      "Grasp the bar with an overhand grip, hands shoulder-width apart.",
+      "Keep your elbows close to your sides and your upper arms stationary.",
+      "Exhale and push the bar down until your elbows are fully extended."
+    ],
+    "steps_fr": [
+      "Fixe une barre droite à une machine à câble à poulie haute.",
+      "Tiens-toi face à la machine, les pieds écartés à la largeur des épaules et les genoux légèrement fléchis.",
+      "Saisis la barre avec une prise en pronation, les mains écartées à la largeur des épaules.",
+      "Garde tes coudes près de tes flancs et le haut de tes bras immobile.",
+      "Expire et pousse la barre vers le bas jusqu'à ce que tes coudes soient complètement tendus."
+    ]
+  },
+  {
+    "id": "overhead_triceps_ext",
+    "name": "Overhead Dumbbell Triceps Extension",
+    "muscle": "triceps",
+    "secondary": [],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps, rest 60 s",
+    "instructions": "Hold one dumbbell with both hands above your head. Lower it behind your head by bending the elbows, then extend the arms back up.",
+    "tips": "Stretches the long head of the triceps; keep elbows pointing forward.",
+    "avoid_if": [
+      "elbow",
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0430-PdmaD0N.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0430-PdmaD0N.gif",
+    "dataset_name": "dumbbell standing triceps extension",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and hold a dumbbell in one hand.",
+      "Raise the dumbbell overhead, keeping your arm straight.",
+      "Bend your elbow and lower the dumbbell behind your head, keeping your upper arm stationary.",
+      "Extend your arm back up to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et tiens un haltère d'une main.",
+      "Lève l'haltère au-dessus de ta tête en gardant ton bras tendu.",
+      "Plie ton coude et abaisse l'haltère derrière ta tête en gardant le haut de ton bras immobile.",
+      "Étends ton bras pour revenir vers le haut en position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "bench_dip",
+    "name": "Bench Dip",
+    "muscle": "triceps",
+    "secondary": [
+      "chest",
+      "shoulders"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 60 s",
+    "instructions": "Put your hands on the edge of a bench or chair behind you, legs in front. Lower your body by bending the elbows to about 90 degrees, then push back up.",
+    "tips": "Keep your back close to the bench. Bend the knees to make it easier.",
+    "avoid_if": [
+      "shoulder",
+      "wrist"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1753-DQ0cqkT.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1753-DQ0cqkT.gif",
+    "dataset_name": "three bench dip",
+    "steps_en": [
+      "Sit on a bench with your hands gripping the edge, fingers pointing forward.",
+      "Slide your butt off the bench, supporting your weight with your hands.",
+      "Bend your elbows and lower your body until your upper arms are parallel to the ground.",
+      "Push yourself back up to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Assieds-toi sur un banc, les mains agrippant le bord, doigts pointant vers l'avant.",
+      "Fais glisser tes fesses hors du banc, en soutenant ton poids avec tes mains.",
+      "Plie tes coudes et abaisse ton corps jusqu'à ce que le haut de tes bras soit parallèle au sol.",
+      "Repousse-toi vers le haut jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "close_grip_push_up",
+    "name": "Close-Grip (Diamond) Push-Up",
+    "muscle": "triceps",
+    "secondary": [
+      "chest"
+    ],
+    "equipment": [
+      "bodyweight"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 8-15 reps, rest 60-90 s",
+    "instructions": "Do a push-up with your hands close together under your chest, elbows tucked against your body.",
+    "tips": "Bodyweight triceps builder. Do it on your knees if needed.",
+    "avoid_if": [
+      "wrist"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0283-soIB2rj.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0283-soIB2rj.gif",
+    "dataset_name": "diamond push-up",
+    "steps_en": [
+      "Start in a high plank position with your hands close together, forming a diamond shape with your thumbs and index fingers.",
+      "Keep your body in a straight line from head to toe, engaging your core and glutes.",
+      "Lower your chest towards the diamond shape formed by your hands, keeping your elbows close to your body.",
+      "Pause for a moment at the bottom, then push yourself back up to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Commence en position de planche haute, les mains rapprochées, formant un losange avec tes pouces et tes index.",
+      "Garde ton corps bien aligné de la tête aux pieds, en gainant ta sangle abdominale et tes fessiers.",
+      "Abaisse ta poitrine vers le losange formé par tes mains, en gardant les coudes près de ton corps.",
+      "Marque une pause en bas, puis pousse-toi vers le haut jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "farmer_carry",
+    "name": "Farmer's Carry",
+    "muscle": "forearms",
+    "secondary": [
+      "traps",
+      "abs"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 walks of 30-40 m, rest 90 s",
+    "instructions": "Pick up a heavy dumbbell in each hand and walk with an upright posture, shoulders back, for the set distance.",
+    "tips": "Builds grip strength, traps and core at the same time.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2133-qPEzJjA.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2133-qPEzJjA.gif",
+    "dataset_name": "farmers walk",
+    "steps_en": [
+      "Stand up straight with a dumbbell in each hand, palms facing your sides.",
+      "Keep your back straight and your shoulders back.",
+      "Take small, controlled steps forward, maintaining an upright posture.",
+      "Continue walking for the desired distance or time.",
+      "To finish, stop walking and carefully lower the dumbbells to your sides."
+    ],
+    "steps_fr": [
+      "Tiens-toi bien droit avec un haltère dans chaque main, les paumes tournées vers tes côtés.",
+      "Garde le dos droit et tes épaules en arrière.",
+      "Fais de petits pas contrôlés vers l'avant, en gardant une posture bien droite.",
+      "Continue à marcher sur la distance ou le temps souhaité.",
+      "Pour terminer, arrête de marcher et abaisse prudemment les haltères le long de tes flancs."
+    ]
+  },
+  {
+    "id": "wrist_curl",
+    "name": "Dumbbell Wrist Curl",
+    "muscle": "forearms",
+    "secondary": [],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "2-3 sets of 15-20 reps, rest 45 s",
+    "instructions": "Sit with forearms on your thighs, palms up, holding dumbbells. Let the weights roll down to your fingers, then curl the wrists up.",
+    "tips": "Use light weights and a full range of motion.",
+    "avoid_if": [
+      "wrist"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0401-2dImyQ8.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0401-2dImyQ8.gif",
+    "dataset_name": "dumbbell seated palms up wrist curl",
+    "steps_en": [
+      "Sit on a bench with your feet flat on the ground and hold a dumbbell in each hand, palms facing up.",
+      "Rest your forearms on your thighs, allowing your wrists to hang off the edge.",
+      "Slowly curl your wrists upward, squeezing your forearms at the top of the movement.",
+      "Pause for a moment, then lower your wrists back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Assieds-toi sur un banc, les pieds à plat sur le sol, et tiens un haltère dans chaque main, paumes tournées vers le haut.",
+      "Pose tes avant-bras sur tes cuisses, en laissant tes poignets dépasser du bord.",
+      "Enroule lentement tes poignets vers le haut, en contractant tes avant-bras en haut du mouvement.",
+      "Marque une pause, puis abaisse tes poignets jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "dead_hang",
+    "name": "Dead Hang",
+    "muscle": "forearms",
+    "secondary": [
+      "upper_back",
+      "shoulders"
+    ],
+    "equipment": [
+      "gym",
+      "bodyweight"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 hangs of 20-45 s, rest 60 s",
+    "instructions": "Hang from a pull-up bar with straight arms and a firm grip for as long as possible.",
+    "tips": "Improves grip and decompresses the spine.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0652-lBDjFxJ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0652-lBDjFxJ.gif",
+    "dataset_name": "pull-up",
+    "steps_en": [
+      "Hang from a pull-up bar with your palms facing away from you and your arms fully extended.",
+      "Engage your core and squeeze your shoulder blades together.",
+      "Pull your body up towards the bar by bending your elbows and bringing your chest towards the bar.",
+      "Pause at the top of the movement, then slowly lower your body back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Suspends-toi à une barre de traction, les paumes tournées vers l'extérieur et les bras complètement étendus.",
+      "Gaine ta sangle abdominale et resserre tes omoplates.",
+      "Tire ton corps vers le haut en direction de la barre en fléchissant tes coudes et en amenant ta poitrine vers la barre.",
+      "Marque une pause en haut du mouvement, puis abaisse lentement ton corps jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "plank",
+    "name": "Plank",
+    "muscle": "abs",
+    "secondary": [
+      "obliques",
+      "shoulders"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 holds of 30-60 s, rest 45 s",
+    "instructions": "Rest on your forearms and toes, body in a straight line. Squeeze your abs and glutes and hold.",
+    "tips": "Don't let the hips sag or rise. Quality over duration.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2135-VBAWRPG.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2135-VBAWRPG.gif",
+    "dataset_name": "weighted front plank",
+    "steps_en": [
+      "Start by lying face down on the floor.",
+      "Place your forearms on the ground, with your elbows directly under your shoulders.",
+      "Extend your legs straight out behind you, with your toes on the ground.",
+      "Engage your core and lift your body off the ground, balancing on your forearms and toes.",
+      "Keep your body in a straight line from your head to your heels."
+    ],
+    "steps_fr": [
+      "Commence allongé face contre terre sur le sol.",
+      "Place tes avant-bras au sol, avec tes coudes directement sous tes épaules.",
+      "Étends tes jambes droit derrière toi, les orteils au sol.",
+      "Gaine ta sangle abdominale et lève ton corps du sol, en équilibre sur tes avant-bras et tes orteils.",
+      "Garde ton corps bien aligné de la tête aux talons."
+    ]
+  },
+  {
+    "id": "crunch",
+    "name": "Crunch",
+    "muscle": "abs",
+    "secondary": [],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 15-20 reps, rest 45 s",
+    "instructions": "Lie on your back, knees bent. Curl your shoulders off the floor by contracting the abs, then lower slowly.",
+    "tips": "Don't pull on your neck; think of bringing ribs to hips.",
+    "avoid_if": [
+      "neck"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0274-TFqbd8t.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0274-TFqbd8t.gif",
+    "dataset_name": "crunch floor",
+    "steps_en": [
+      "Lie flat on your back with your knees bent and feet flat on the ground.",
+      "Place your hands behind your head with your elbows pointing outwards.",
+      "Engage your abs and lift your shoulders off the ground, curling forward towards your knees.",
+      "Pause for a moment at the top, then slowly lower your shoulders back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Allonge-toi sur le dos, les genoux fléchis et les pieds à plat au sol.",
+      "Place tes mains derrière ta tête avec tes coudes pointés vers l'extérieur.",
+      "Gaine tes abdominaux et décolle tes épaules du sol, en t'enroulant vers l'avant en direction de tes genoux.",
+      "Marque une pause en haut, puis abaisse lentement tes épaules pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "hanging_leg_raise",
+    "name": "Hanging Leg Raise",
+    "muscle": "abs",
+    "secondary": [
+      "forearms"
+    ],
+    "equipment": [
+      "gym",
+      "bodyweight"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 8-15 reps, rest 60 s",
+    "instructions": "Hang from a bar and raise your legs (bent or straight) until thighs are at least parallel to the floor, then lower without swinging.",
+    "tips": "Start with bent knees; tilt the pelvis up at the top.",
+    "avoid_if": [
+      "lower back",
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0472-I3tsCnC.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0472-I3tsCnC.gif",
+    "dataset_name": "hanging leg raise",
+    "steps_en": [
+      "Hang from a pull-up bar with your arms fully extended and your palms facing away from you.",
+      "Engage your core and lift your legs up in front of you, keeping them straight.",
+      "Continue lifting until your legs are parallel to the ground or as high as you can comfortably go.",
+      "Pause for a moment at the top, then slowly lower your legs back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Suspends-toi à une barre de traction, les bras complètement étendus et les paumes tournées vers l'extérieur.",
+      "Gaine ta sangle abdominale et lève tes jambes devant toi, en les gardant droites.",
+      "Continue à soulever jusqu'à ce que tes jambes soient parallèles au sol ou aussi haut que tu peux confortablement aller.",
+      "Marque une pause en haut, puis abaisse lentement tes jambes pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "cable_crunch",
+    "name": "Kneeling Cable Crunch",
+    "muscle": "abs",
+    "secondary": [],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 12-15 reps, rest 60 s",
+    "instructions": "Kneel below a high cable holding a rope by your head. Crunch down by flexing the spine, bringing elbows towards the knees.",
+    "tips": "Lets you add weight to ab training progressively.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0175-WW95auq.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0175-WW95auq.gif",
+    "dataset_name": "cable kneeling crunch",
+    "steps_en": [
+      "Attach a rope handle to a high pulley and kneel down facing away from the machine.",
+      "Hold the rope handle with both hands and place it behind your head, keeping your elbows out to the sides.",
+      "Keeping your hips stationary, flex your waist and crunch your torso down towards your thighs.",
+      "Pause for a moment at the bottom, then slowly return to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Fixe une poignée à corde à une poulie haute et agenouille-toi dos à la machine.",
+      "Tiens la poignée corde des deux mains et place-la derrière ta tête, en gardant tes coudes vers les côtés.",
+      "En gardant tes hanches immobiles, fléchis ta taille et enroule ton torse vers tes cuisses.",
+      "Marque une pause en bas, puis reviens lentement à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "russian_twist",
+    "name": "Russian Twist",
+    "muscle": "obliques",
+    "secondary": [
+      "abs"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 20 twists, rest 45 s",
+    "instructions": "Sit with knees bent, lean back slightly, feet on the floor or raised. Rotate your torso from side to side, touching the floor next to your hips.",
+    "tips": "Hold a dumbbell to make it harder. Rotate from the torso, not just the arms.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0687-XVDdcoj.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0687-XVDdcoj.gif",
+    "dataset_name": "russian twist",
+    "steps_en": [
+      "Sit on the ground with your knees bent and feet flat on the floor.",
+      "Lean back slightly while keeping your back straight and your core engaged.",
+      "Hold your hands together in front of your chest or hold a weight if desired.",
+      "Lift your feet off the ground, balancing on your sit bones.",
+      "Twist your torso to the right, bringing your hands or weight towards the right side of your body."
+    ],
+    "steps_fr": [
+      "Assieds-toi au sol, les genoux fléchis et les pieds à plat sur le sol.",
+      "Penche-toi légèrement en arrière en gardant le dos droit et la sangle abdominale gainée.",
+      "Joins tes mains devant ta poitrine ou tiens un poids si tu le souhaites.",
+      "Décolle tes pieds du sol, en équilibre sur tes ischions.",
+      "Fais pivoter ton torse vers la droite, en amenant tes mains ou le poids vers le côté droit de ton corps."
+    ]
+  },
+  {
+    "id": "side_plank",
+    "name": "Side Plank",
+    "muscle": "obliques",
+    "secondary": [
+      "abs",
+      "glutes"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 holds of 20-45 s per side, rest 45 s",
+    "instructions": "Lie on your side, support yourself on one forearm and the side of your feet, lift the hips to form a straight line and hold.",
+    "tips": "Safe for the back and great for core stability.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3544-5VXmnV5.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3544-5VXmnV5.gif",
+    "dataset_name": "bodyweight incline side plank",
+    "steps_en": [
+      "Start by lying on your side with your legs extended and stacked on top of each other.",
+      "Place your forearm on the ground directly below your shoulder, with your elbow bent at a 90-degree angle.",
+      "Engage your core and lift your hips off the ground, creating a straight line from your head to your feet.",
+      "Hold this position for the desired amount of time.",
+      "Lower your hips back down to the ground and repeat on the other side."
+    ],
+    "steps_fr": [
+      "Commence allongé sur le côté, les jambes tendues et superposées l'une sur l'autre.",
+      "Place ton avant-bras au sol directement sous ton épaule, avec ton coude plié à un angle de 90 degrés.",
+      "Gaine ta sangle abdominale et lève tes hanches du sol, en créant une ligne droite de ta tête à tes pieds.",
+      "Maintiens cette position pendant la durée souhaitée.",
+      "Redescends tes hanches jusqu'au sol et répète de l'autre côté."
+    ]
+  },
+  {
+    "id": "pallof_press",
+    "name": "Pallof Press",
+    "muscle": "obliques",
+    "secondary": [
+      "abs"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps per side, rest 45 s",
+    "instructions": "Stand sideways to a cable at chest height, hold the handle at your chest and press it straight out, resisting the rotation, then bring it back.",
+    "tips": "An anti-rotation exercise: the goal is to NOT move.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0868-G08RZcQ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0868-G08RZcQ.gif",
+    "dataset_name": "cable curl",
+    "steps_en": [
+      "Stand facing the cable machine with your feet shoulder-width apart.",
+      "Grasp the cable attachment with an underhand grip, palms facing up.",
+      "Keep your elbows close to your sides and your upper arms stationary.",
+      "Exhale and curl the cable attachment towards your shoulders, contracting your biceps.",
+      "Pause for a moment at the top of the movement, squeezing your biceps."
+    ],
+    "steps_fr": [
+      "Tiens-toi face à la machine à câble, les pieds écartés à la largeur des épaules.",
+      "Saisis la poignée du câble avec une prise en supination, les paumes tournées vers le haut.",
+      "Garde tes coudes près de tes flancs et le haut de tes bras immobile.",
+      "Expire et remonte l'accessoire du câble vers tes épaules, en contractant tes biceps.",
+      "Marque une pause en haut du mouvement, en contractant tes biceps."
+    ]
+  },
+  {
+    "id": "back_squat",
+    "name": "Barbell Back Squat",
+    "muscle": "quads",
+    "secondary": [
+      "glutes",
+      "hamstrings",
+      "lower_back"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3-5 sets of 5-8 reps, rest 2-3 min",
+    "instructions": "Bar on your upper back, feet shoulder-width apart. Push the hips back and bend the knees to go down until thighs are at least parallel to the floor, then stand up.",
+    "tips": "Knees follow the toes, chest up, brace your core. Use safety bars in the rack.",
+    "avoid_if": [
+      "knee",
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif",
+    "dataset_name": "barbell full squat",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, toes slightly turned out.",
+      "Hold the barbell across your upper back, resting it on your traps or rear delts.",
+      "Engage your core and keep your chest up as you begin to lower your body down.",
+      "Bend at the knees and hips, pushing your hips back and down as if sitting into a chair.",
+      "Lower yourself until your thighs are parallel to the ground or slightly below."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, les orteils légèrement tournés vers l'extérieur.",
+      "Tiens la barre en travers du haut de ton dos, en la faisant reposer sur tes trapèzes ou tes deltoïdes postérieurs.",
+      "Gaine ta sangle abdominale et garde ta poitrine relevée pendant que tu commences à abaisser ton corps.",
+      "Fléchis les genoux et les hanches en poussant tes hanches vers l'arrière et vers le bas comme si tu t'asseyais sur une chaise.",
+      "Descends jusqu'à ce que tes cuisses soient parallèles au sol ou légèrement en dessous."
+    ]
+  },
+  {
+    "id": "goblet_squat",
+    "name": "Goblet Squat",
+    "muscle": "quads",
+    "secondary": [
+      "glutes",
+      "abs"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps, rest 90 s",
+    "instructions": "Hold a dumbbell vertically against your chest. Squat down between your knees keeping the chest up, then stand up.",
+    "tips": "Best squat to learn the movement as a beginner.",
+    "avoid_if": [
+      "knee"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1760-yn8yg1r.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1760-yn8yg1r.gif",
+    "dataset_name": "dumbbell goblet squat",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, holding a dumbbell vertically against your chest with both hands.",
+      "Keeping your chest up and core engaged, lower your body down into a squat position by pushing your hips back and bending your knees.",
+      "Continue lowering until your thighs are parallel to the ground, or as low as you can comfortably go.",
+      "Pause for a moment at the bottom, then push through your heels to return to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, en tenant un haltère verticalement contre ta poitrine à deux mains.",
+      "En gardant la poitrine relevée et la sangle abdominale gainée, abaisse ton corps en position de squat en poussant tes hanches vers l'arrière et en fléchissant tes genoux.",
+      "Continue à descendre jusqu'à ce que tes cuisses soient parallèles au sol, ou aussi bas que tu peux confortablement aller.",
+      "Marque une pause en bas, puis pousse sur tes talons pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "leg_press",
+    "name": "Leg Press",
+    "muscle": "quads",
+    "secondary": [
+      "glutes",
+      "hamstrings"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 2 min",
+    "instructions": "Sit in the machine, feet shoulder-width on the platform. Lower the platform until knees reach about 90 degrees, then push back without locking the knees.",
+    "tips": "Keep your lower back pressed against the seat.",
+    "avoid_if": [
+      "knee"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1463-2Qh2J1e.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1463-2Qh2J1e.gif",
+    "dataset_name": "sled 45° leg press (side pov)",
+    "steps_en": [
+      "Adjust the seat of the sled machine so that your knees are at a 90-degree angle when your feet are on the footplate.",
+      "Sit on the sled machine with your back flat against the backrest and your feet shoulder-width apart on the footplate.",
+      "Grip the handles on the sides of the seat for stability.",
+      "Push against the footplate to extend your legs, straightening them completely.",
+      "Pause for a moment at the top, then slowly bend your knees to lower the footplate back to the starting position."
+    ],
+    "steps_fr": [
+      "Règle le siège de la machine à traîneau de sorte que tes genoux forment un angle de 90 degrés lorsque tes pieds sont sur le repose-pieds.",
+      "Assieds-toi sur la machine à traîneau, le dos bien à plat contre le dossier et les pieds écartés à la largeur des épaules sur la plaque de pied.",
+      "Saisis les poignées sur les côtés du siège pour te stabiliser.",
+      "Pousse contre le repose-pieds pour étendre tes jambes en les tendant complètement.",
+      "Marque une pause en haut, puis fléchis lentement tes genoux pour abaisser la plateforme et revenir à la position de départ."
+    ]
+  },
+  {
+    "id": "bulgarian_split_squat",
+    "name": "Bulgarian Split Squat",
+    "muscle": "quads",
+    "secondary": [
+      "glutes",
+      "adductors"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 8-12 reps per leg, rest 90 s",
+    "instructions": "Put your back foot on a bench behind you. Lower your back knee towards the floor by bending the front leg, then push back up.",
+    "tips": "One of the best home leg exercises; hold dumbbells to make it harder.",
+    "avoid_if": [
+      "knee"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0809-QpXqiq8.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0809-QpXqiq8.gif",
+    "dataset_name": "suspended split squat",
+    "steps_en": [
+      "Stand facing away from a suspension trainer with your feet shoulder-width apart.",
+      "Extend one leg forward and place the top of your foot in the foot cradle of the suspension trainer.",
+      "Bend your standing leg and lower your body down into a lunge position, keeping your chest up and your knee in line with your toes.",
+      "Push through your heel to return to the starting position.",
+      "Repeat for the desired number of repetitions, then switch legs."
+    ],
+    "steps_fr": [
+      "Tiens-toi dos à un sangle de suspension, les pieds écartés à la largeur des épaules.",
+      "Étends une jambe vers l'avant et place le dessus de ton pied dans l'étrier du sangle de suspension.",
+      "Fléchis ta jambe d'appui et abaisse ton corps en position de fente en gardant la poitrine relevée et ton genou aligné avec tes orteils.",
+      "Pousse à travers ton talon pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité, puis change de jambe."
+    ]
+  },
+  {
+    "id": "bodyweight_squat",
+    "name": "Bodyweight Squat",
+    "muscle": "quads",
+    "secondary": [
+      "glutes"
+    ],
+    "equipment": [
+      "bodyweight"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 15-25 reps, rest 60 s",
+    "instructions": "Feet shoulder-width apart, arms in front. Sit back and down as low as comfortable, then stand up.",
+    "tips": "Slow down the descent (3 seconds) to make it harder.",
+    "avoid_if": [
+      "knee"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3168-3xK09Sk.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3168-3xK09Sk.gif",
+    "dataset_name": "bodyweight squatting row",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, holding onto a sturdy object or suspension trainer with your arms extended.",
+      "Lower your body into a squat position, keeping your back straight and your knees behind your toes.",
+      "From the squat position, pull your body up towards the object or suspension trainer, squeezing your shoulder blades together.",
+      "Pause for a moment at the top, then slowly lower your body back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, en te tenant à un objet solide ou à un sangle de suspension, les bras tendus.",
+      "Descends en position accroupie, en gardant le dos droit et tes genoux derrière les orteils.",
+      "Depuis la position de squat, tire ton corps vers l'objet ou l'appareil de suspension, en resserrant tes omoplates.",
+      "Marque une pause en haut, puis abaisse lentement ton corps pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "sumo_squat",
+    "name": "Sumo Goblet Squat",
+    "muscle": "adductors",
+    "secondary": [
+      "glutes",
+      "quads"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells",
+      "bodyweight"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 60-90 s",
+    "instructions": "Stand with a wide stance, toes pointing out, holding a dumbbell. Squat down keeping knees pushed out over the toes, then stand.",
+    "tips": "The wide stance puts more work on the inner thighs.",
+    "avoid_if": [
+      "knee",
+      "hip"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0413-HsvHqgf.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0413-HsvHqgf.gif",
+    "dataset_name": "dumbbell squat",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, holding a dumbbell in each hand at your sides.",
+      "Keeping your chest up and core engaged, lower your body down by bending at the knees and hips, as if sitting back into a chair.",
+      "Continue lowering until your thighs are parallel to the ground, or as low as you can comfortably go.",
+      "Pause for a moment at the bottom, then push through your heels to return to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, en tenant un haltère dans chaque main le long du corps.",
+      "En gardant la poitrine relevée et la sangle abdominale gainée, abaisse ton corps en fléchissant les genoux et les hanches, comme si tu t'asseyais sur une chaise.",
+      "Continue à descendre jusqu'à ce que tes cuisses soient parallèles au sol, ou aussi bas que tu peux confortablement aller.",
+      "Marque une pause en bas, puis pousse sur tes talons pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "copenhagen_plank",
+    "name": "Copenhagen Plank",
+    "muscle": "adductors",
+    "secondary": [
+      "obliques"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 holds of 15-30 s per side, rest 60 s",
+    "instructions": "Side plank with your top leg resting on a bench and bottom leg in the air. Hold the position.",
+    "tips": "Bend the top knee on the bench to make it easier. Protects against groin injuries.",
+    "avoid_if": [
+      "hip",
+      "groin"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3544-5VXmnV5.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3544-5VXmnV5.gif",
+    "dataset_name": "bodyweight incline side plank",
+    "steps_en": [
+      "Start by lying on your side with your legs extended and stacked on top of each other.",
+      "Place your forearm on the ground directly below your shoulder, with your elbow bent at a 90-degree angle.",
+      "Engage your core and lift your hips off the ground, creating a straight line from your head to your feet.",
+      "Hold this position for the desired amount of time.",
+      "Lower your hips back down to the ground and repeat on the other side."
+    ],
+    "steps_fr": [
+      "Commence allongé sur le côté, les jambes tendues et superposées l'une sur l'autre.",
+      "Place ton avant-bras au sol directement sous ton épaule, avec ton coude plié à un angle de 90 degrés.",
+      "Gaine ta sangle abdominale et lève tes hanches du sol, en créant une ligne droite de ta tête à tes pieds.",
+      "Maintiens cette position pendant la durée souhaitée.",
+      "Redescends tes hanches jusqu'au sol et répète de l'autre côté."
+    ]
+  },
+  {
+    "id": "adductor_machine",
+    "name": "Hip Adduction Machine",
+    "muscle": "adductors",
+    "secondary": [],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 12-15 reps, rest 60 s",
+    "instructions": "Sit in the machine with pads on the inside of your knees. Squeeze your legs together, then open slowly.",
+    "tips": "Control the opening phase.",
+    "avoid_if": [
+      "groin"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0598-oHsrypV.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0598-oHsrypV.gif",
+    "dataset_name": "lever seated hip adduction",
+    "steps_en": [
+      "Adjust the seat height and position yourself on the machine with your back against the backrest.",
+      "Place your feet on the footrests and grasp the handles for stability.",
+      "Engage your adductor muscles and slowly bring your legs together, squeezing your inner thighs.",
+      "Pause for a moment at the peak contraction, then slowly return to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Règle la hauteur du siège et installe-toi sur la machine, le dos contre le dossier.",
+      "Place tes pieds sur les repose-pieds et saisis les poignées pour la stabilité.",
+      "Sollicite tes muscles adducteurs et rapproche lentement tes jambes, en contractant l'intérieur de tes cuisses.",
+      "Marque une pause au sommet de la contraction, puis reviens lentement à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "standing_calf_raise",
+    "name": "Standing Calf Raise",
+    "muscle": "calves",
+    "secondary": [],
+    "equipment": [
+      "gym",
+      "dumbbells",
+      "bodyweight"
+    ],
+    "level": "beginner",
+    "sets_reps": "4 sets of 12-20 reps, rest 60 s",
+    "instructions": "Stand on the edge of a step with heels hanging. Rise onto your toes as high as possible, pause, then lower the heels below the step.",
+    "tips": "Full stretch at the bottom and a 1-second pause at the top.",
+    "avoid_if": [
+      "ankle"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1372-8ozhUIZ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1372-8ozhUIZ.gif",
+    "dataset_name": "barbell standing calf raise",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and place a barbell across your upper back.",
+      "Raise your heels off the ground as high as possible, using only your toes.",
+      "Pause for a moment at the top, then slowly lower your heels back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et place une barre en travers du haut de ton dos.",
+      "Lève tes talons du sol aussi haut que possible en utilisant uniquement la pointe des pieds.",
+      "Marque une pause en haut, puis abaisse lentement tes talons pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "seated_calf_raise",
+    "name": "Seated Calf Raise",
+    "muscle": "calves",
+    "secondary": [],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 15-20 reps, rest 60 s",
+    "instructions": "Sit with weight on your knees (machine or dumbbells), balls of the feet on a step, and raise your heels.",
+    "tips": "Targets the soleus, the deeper calf muscle.",
+    "avoid_if": [
+      "ankle"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0088-ktsFQAZ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0088-ktsFQAZ.gif",
+    "dataset_name": "barbell seated calf raise",
+    "steps_en": [
+      "Sit on a bench with your feet flat on the floor and a barbell resting on your thighs.",
+      "Place the balls of your feet on a raised platform, such as a block or step.",
+      "Position the barbell across your thighs and hold it securely with your hands.",
+      "Keeping your back straight and your core engaged, lift your heels off the ground by extending your ankles.",
+      "Pause for a moment at the top, then slowly lower your heels back down to the starting position."
+    ],
+    "steps_fr": [
+      "Assieds-toi sur un banc, les pieds à plat sur le sol et une barre posée sur tes cuisses.",
+      "Place l'avant de tes pieds sur une plateforme surélevée, comme un bloc ou une marche.",
+      "Positionne la barre en travers de tes cuisses et tiens-la fermement avec tes mains.",
+      "En gardant le dos droit et ta sangle abdominale gainée, soulève tes talons du sol en étendant tes chevilles.",
+      "Marque une pause en haut, puis abaisse lentement tes talons pour revenir à la position de départ."
+    ]
+  },
+  {
+    "id": "shrug",
+    "name": "Dumbbell Shrug",
+    "muscle": "traps",
+    "secondary": [
+      "forearms"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 60 s",
+    "instructions": "Hold heavy dumbbells at your sides and lift your shoulders straight up towards your ears, pause, then lower.",
+    "tips": "Don't roll the shoulders; straight up and down.",
+    "avoid_if": [
+      "neck"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0406-NJzBsGJ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0406-NJzBsGJ.gif",
+    "dataset_name": "dumbbell shrug",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and hold a dumbbell in each hand with your palms facing your body.",
+      "Keep your arms straight and let the dumbbells hang by your sides.",
+      "Raise your shoulders as high as possible, as if you are trying to touch your ears with your shoulders.",
+      "Hold the contraction for a second, then slowly lower your shoulders back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et tiens un haltère dans chaque main, paumes tournées vers ton corps.",
+      "Garde tes bras tendus et laisse les haltères pendre le long de tes flancs.",
+      "Lève tes épaules aussi haut que possible, comme si tu essayais de toucher tes oreilles avec tes épaules.",
+      "Maintiens la contraction une seconde, puis abaisse lentement tes épaules jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "upright_row",
+    "name": "Wide-Grip Upright Row",
+    "muscle": "traps",
+    "secondary": [
+      "shoulders"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 10-12 reps, rest 60-90 s",
+    "instructions": "Hold a bar or dumbbells with a wide grip, pull them up along your body to chest height, elbows leading.",
+    "tips": "Use a wide grip and stop at chest height to protect the shoulders.",
+    "avoid_if": [
+      "shoulder"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0437-ainizkb.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0437-ainizkb.gif",
+    "dataset_name": "dumbbell upright row",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, holding a dumbbell in each hand with an overhand grip.",
+      "Let the dumbbells hang in front of your thighs, with your arms fully extended.",
+      "Keeping your back straight and your core engaged, exhale and lift the dumbbells straight up towards your chin, leading with your elbows.",
+      "Pause for a moment at the top, then inhale and slowly lower the dumbbells back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, en tenant un haltère dans chaque main en prise pronation.",
+      "Laisse les haltères pendre devant tes cuisses, les bras entièrement tendus.",
+      "En gardant le dos droit et ta sangle abdominale gainée, expire et soulève les haltères droit vers ton menton, en menant avec tes coudes.",
+      "Marque une pause en haut, puis inspire et abaisse lentement les haltères pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "pull_up",
+    "name": "Pull-Up",
+    "muscle": "upper_back",
+    "secondary": [
+      "biceps",
+      "forearms"
+    ],
+    "equipment": [
+      "gym",
+      "bodyweight"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3-4 sets of 5-10 reps, rest 2 min",
+    "instructions": "Hang from a bar with palms facing away, hands wider than shoulders. Pull your chest towards the bar, then lower with control.",
+    "tips": "Use the lat pulldown or a band until you can do 5 clean reps.",
+    "avoid_if": [
+      "shoulder",
+      "elbow"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0652-lBDjFxJ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0652-lBDjFxJ.gif",
+    "dataset_name": "pull-up",
+    "steps_en": [
+      "Hang from a pull-up bar with your palms facing away from you and your arms fully extended.",
+      "Engage your core and squeeze your shoulder blades together.",
+      "Pull your body up towards the bar by bending your elbows and bringing your chest towards the bar.",
+      "Pause at the top of the movement, then slowly lower your body back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Suspends-toi à une barre de traction, les paumes tournées vers l'extérieur et les bras complètement étendus.",
+      "Gaine ta sangle abdominale et resserre tes omoplates.",
+      "Tire ton corps vers le haut en direction de la barre en fléchissant tes coudes et en amenant ta poitrine vers la barre.",
+      "Marque une pause en haut du mouvement, puis abaisse lentement ton corps jusqu'à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "lat_pulldown",
+    "name": "Lat Pulldown",
+    "muscle": "upper_back",
+    "secondary": [
+      "biceps"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps, rest 90 s",
+    "instructions": "Sit at the machine, grip the bar wider than shoulders. Pull it down to your upper chest while squeezing the shoulder blades, then return slowly.",
+    "tips": "Lean back slightly; don't pull behind the neck.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0198-RVwzP10.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0198-RVwzP10.gif",
+    "dataset_name": "cable pulldown",
+    "steps_en": [
+      "Adjust the cable pulldown machine so that the seat is at a comfortable height and the knee pad is secured.",
+      "Sit on the seat with your back straight and your feet flat on the ground.",
+      "Grasp the cable bar with an overhand grip, slightly wider than shoulder-width apart.",
+      "Lean back slightly and engage your core.",
+      "Pull the cable bar down towards your chest, squeezing your shoulder blades together."
+    ],
+    "steps_fr": [
+      "Règle la machine de tirage à câble de sorte que le siège soit à une hauteur confortable et que la cale-genoux soit bien fixée.",
+      "Assieds-toi sur le siège, le dos droit et les pieds à plat sur le sol.",
+      "Saisis la barre du câble avec une prise en pronation, un peu plus large que la largeur des épaules.",
+      "Penche-toi légèrement en arrière et gaine ta sangle abdominale.",
+      "Tire la barre du câble vers ta poitrine, en contractant tes omoplates."
+    ]
+  },
+  {
+    "id": "barbell_row",
+    "name": "Barbell Row",
+    "muscle": "upper_back",
+    "secondary": [
+      "biceps",
+      "lower_back"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3-4 sets of 6-10 reps, rest 2 min",
+    "instructions": "Hinge forward at the hips with a flat back, holding a barbell. Pull it towards your belly button, then lower.",
+    "tips": "Keep your back flat; don't jerk the weight.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0027-eZyBC3j.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0027-eZyBC3j.gif",
+    "dataset_name": "barbell bent over row",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and knees slightly bent.",
+      "Bend forward at the hips while keeping your back straight and chest up.",
+      "Grasp the barbell with an overhand grip, hands slightly wider than shoulder-width apart.",
+      "Pull the barbell towards your lower chest by retracting your shoulder blades and squeezing your back muscles.",
+      "Pause for a moment at the top, then slowly lower the barbell back to the starting position."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et les genoux légèrement fléchis.",
+      "Penche-toi vers l'avant au niveau des hanches en gardant ton dos droit et ta poitrine haute.",
+      "Saisis la barre avec une prise en pronation, les mains un peu plus larges que la largeur des épaules.",
+      "Tire la barre vers le bas de ta poitrine en rétractant tes omoplates et en contractant les muscles de ton dos.",
+      "Marque une pause en haut, puis abaisse lentement la barre pour revenir à la position de départ."
+    ]
+  },
+  {
+    "id": "one_arm_db_row",
+    "name": "One-Arm Dumbbell Row",
+    "muscle": "upper_back",
+    "secondary": [
+      "biceps"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 reps per arm, rest 60-90 s",
+    "instructions": "Put one knee and one hand on a bench. With the other hand, pull a dumbbell towards your hip, then lower it.",
+    "tips": "Supported position = safe for the lower back.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0293-BJ0Hz5L.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0293-BJ0Hz5L.gif",
+    "dataset_name": "dumbbell bent over row",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, knees slightly bent, and hold a dumbbell in each hand with your palms facing your body.",
+      "Bend forward at the hips, keeping your back straight and your core engaged.",
+      "Let your arms hang straight down towards the floor, with your elbows slightly bent.",
+      "Pull the dumbbells up towards your chest, squeezing your shoulder blades together.",
+      "Pause for a moment at the top, then slowly lower the dumbbells back down to the starting position."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, les genoux légèrement fléchis, et tiens un haltère dans chaque main, paumes tournées vers ton corps.",
+      "Penche-toi vers l'avant au niveau des hanches en gardant ton dos droit et ta sangle abdominale gainée.",
+      "Laisse tes bras pendre droit vers le bas en direction du sol, les coudes légèrement fléchis.",
+      "Tire les haltères vers ta poitrine en contractant tes omoplates l'une vers l'autre.",
+      "Marque une pause en haut, puis abaisse lentement les haltères pour revenir à la position de départ."
+    ]
+  },
+  {
+    "id": "inverted_row",
+    "name": "Inverted Row (Table Row)",
+    "muscle": "upper_back",
+    "secondary": [
+      "biceps"
+    ],
+    "equipment": [
+      "bodyweight",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 8-15 reps, rest 60-90 s",
+    "instructions": "Lie under a sturdy table or low bar, grab the edge, and pull your chest up to it keeping your body straight.",
+    "tips": "Bodyweight back exercise: bend the knees to make it easier.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0499-bZGHsAZ.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0499-bZGHsAZ.gif",
+    "dataset_name": "inverted row",
+    "steps_en": [
+      "Set up a bar at waist height or use a suspension trainer.",
+      "Stand facing the bar or suspension trainer, with your feet shoulder-width apart.",
+      "Grab the bar or handles with an overhand grip, slightly wider than shoulder-width apart.",
+      "Lean back, keeping your body straight and your heels on the ground.",
+      "Pull your chest towards the bar or handles, squeezing your shoulder blades together."
+    ],
+    "steps_fr": [
+      "Installe une barre à hauteur de taille ou utilise un entraîneur en suspension.",
+      "Tiens-toi face à la barre ou au sangle de suspension, les pieds écartés à la largeur des épaules.",
+      "Saisis la barre ou les poignées avec une prise en pronation, un peu plus large que la largeur des épaules.",
+      "Penche-toi en arrière, en gardant le corps droit et les talons au sol.",
+      "Tire ta poitrine vers la barre ou les poignées en contractant tes omoplates l'une vers l'autre."
+    ]
+  },
+  {
+    "id": "back_extension",
+    "name": "Back Extension",
+    "muscle": "lower_back",
+    "secondary": [
+      "glutes",
+      "hamstrings"
+    ],
+    "equipment": [
+      "gym",
+      "bodyweight"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 12-15 reps, rest 60 s",
+    "instructions": "On a back extension bench (or lying face down on the floor for a 'superman'), lower your torso, then raise it until your body is in a straight line.",
+    "tips": "Don't over-arch at the top.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0489-zhMwOwE.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0489-zhMwOwE.gif",
+    "dataset_name": "hyperextension",
+    "steps_en": [
+      "Adjust the hyperextension bench so that your upper thighs are resting on the pad and your feet are secured.",
+      "Cross your arms over your chest or place your hands behind your head.",
+      "Lower your upper body towards the ground while keeping your back straight.",
+      "Pause for a moment at the bottom, then raise your upper body back up until it is in line with your legs.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Règle le banc à lombaires de sorte que le haut de tes cuisses repose sur le coussin et que tes pieds soient bien fixés.",
+      "Croise tes bras sur ta poitrine ou place tes mains derrière ta tête.",
+      "Abaisse le haut de ton corps vers le sol tout en gardant le dos droit.",
+      "Marque une pause en bas, puis relève le haut de ton corps jusqu'à ce qu'il soit aligné avec tes jambes.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "bird_dog",
+    "name": "Bird Dog",
+    "muscle": "lower_back",
+    "secondary": [
+      "abs",
+      "glutes"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10 reps per side, rest 45 s",
+    "instructions": "On hands and knees, extend one arm forward and the opposite leg back, hold 2 seconds, return and switch sides.",
+    "tips": "Very safe; often used in back rehabilitation.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0803-4GqRrAk.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0803-4GqRrAk.gif",
+    "dataset_name": "superman push-up",
+    "steps_en": [
+      "Start in a high plank position with your hands slightly wider than shoulder-width apart and your feet together.",
+      "Engage your core and lower your body towards the ground, keeping your elbows close to your sides.",
+      "As you lower your body, simultaneously lift your right arm and left leg off the ground, extending them straight out.",
+      "Pause for a moment at the top, then lower your arm and leg back down while pushing yourself back up to the starting position.",
+      "Repeat the movement, this time lifting your left arm and right leg."
+    ],
+    "steps_fr": [
+      "Commence en position de planche haute, les mains un peu plus écartées que la largeur des épaules et les pieds joints.",
+      "Gaine ta sangle abdominale et abaisse ton corps vers le sol, en gardant tes coudes près de tes flancs.",
+      "En abaissant ton corps, décolle simultanément ton bras droit et ta jambe gauche du sol en les tendant bien droit.",
+      "Marque une pause en haut, puis abaisse ton bras et ta jambe tout en te poussant vers le haut pour revenir à la position de départ.",
+      "Répète le mouvement, cette fois en levant ton bras gauche et ta jambe droite."
+    ]
+  },
+  {
+    "id": "deadlift",
+    "name": "Conventional Deadlift",
+    "muscle": "lower_back",
+    "secondary": [
+      "glutes",
+      "hamstrings",
+      "traps",
+      "forearms"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 3-6 reps, rest 3 min",
+    "instructions": "Bar over mid-foot, grip just outside the legs. Flat back, push the floor away and stand up with the bar close to your legs, then lower it the same way.",
+    "tips": "Learn the technique with a coach or a light weight; never round your lower back.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0032-ila4NZS.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0032-ila4NZS.gif",
+    "dataset_name": "barbell deadlift",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and the barbell on the ground in front of you.",
+      "Bend your knees and hinge at the hips to lower your torso and grip the barbell with an overhand grip, hands slightly wider than shoulder-width apart.",
+      "Keep your back straight and chest lifted as you drive through your heels to lift the barbell off the ground, extending your hips and knees.",
+      "As you stand up straight, squeeze your glutes and keep your core engaged.",
+      "Lower the barbell back down to the ground by bending at the hips and knees, keeping your back straight."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et la barre au sol devant toi.",
+      "Fléchis les genoux et bascule au niveau des hanches pour abaisser ton torse et saisir la barre en prise pronation, les mains légèrement plus écartées que la largeur des épaules.",
+      "Garde le dos droit et la poitrine relevée pendant que tu pousses sur tes talons pour soulever la barre du sol, en étendant tes hanches et tes genoux.",
+      "En te redressant, contracte tes fessiers et garde ta sangle abdominale gainée.",
+      "Abaisse la barre jusqu'au sol en fléchissant les hanches et les genoux, en gardant ton dos droit."
+    ]
+  },
+  {
+    "id": "hip_thrust",
+    "name": "Barbell Hip Thrust",
+    "muscle": "glutes",
+    "secondary": [
+      "hamstrings"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3-4 sets of 8-12 reps, rest 90 s",
+    "instructions": "Upper back on a bench, barbell on your hips (with a pad). Push through your heels to raise the hips until your body is flat, squeeze the glutes, then lower.",
+    "tips": "Chin tucked, look forward; pause 1 second at the top.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0058-SNFfUff.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0058-SNFfUff.gif",
+    "dataset_name": "barbell lying lifting (on hip)",
+    "steps_en": [
+      "Lie flat on your back on a bench with your feet flat on the ground and your knees bent.",
+      "Hold the barbell with an overhand grip and position it on your hips.",
+      "Engaging your glutes, lift your hips off the bench until your body forms a straight line from your knees to your shoulders.",
+      "Pause for a moment at the top, then slowly lower your hips back down to the starting position.",
+      "Repeat for the desired number of repetitions."
+    ],
+    "steps_fr": [
+      "Allonge-toi sur le dos sur un banc, les pieds à plat au sol et les genoux fléchis.",
+      "Tiens la barre en prise pronation et positionne-la sur tes hanches.",
+      "En gainant tes fessiers, soulève tes hanches du banc jusqu'à ce que ton corps forme une ligne droite de tes genoux à tes épaules.",
+      "Marque une pause en haut, puis abaisse lentement tes hanches pour revenir à la position de départ.",
+      "Répète le nombre de répétitions souhaité."
+    ]
+  },
+  {
+    "id": "glute_bridge",
+    "name": "Glute Bridge",
+    "muscle": "glutes",
+    "secondary": [
+      "hamstrings"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 15-20 reps, rest 60 s",
+    "instructions": "Lie on your back, knees bent, feet flat. Raise your hips by squeezing your glutes, hold 1 second, lower.",
+    "tips": "Single-leg version or a dumbbell on the hips to progress.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1409-qKBpF7I.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1409-qKBpF7I.gif",
+    "dataset_name": "barbell glute bridge",
+    "steps_en": [
+      "Start by lying flat on your back on the ground with your knees bent and feet flat on the floor.",
+      "Place a barbell across your hips, holding it securely with both hands.",
+      "Engage your glutes and core muscles, then lift your hips off the ground until your body forms a straight line from your knees to your shoulders.",
+      "Pause for a moment at the top, squeezing your glutes.",
+      "Slowly lower your hips back down to the starting position."
+    ],
+    "steps_fr": [
+      "Commence allongé sur le dos sur le sol, les genoux fléchis et les pieds à plat sur le sol.",
+      "Place une barre sur tes hanches, en la tenant fermement des deux mains.",
+      "Contracte tes fessiers et tes muscles abdominaux, puis soulève tes hanches du sol jusqu'à ce que ton corps forme une ligne droite de tes genoux à tes épaules.",
+      "Marque une pause en haut, en contractant tes fessiers.",
+      "Abaisse lentement tes hanches vers la position de départ."
+    ]
+  },
+  {
+    "id": "walking_lunge",
+    "name": "Walking Lunge",
+    "muscle": "glutes",
+    "secondary": [
+      "quads",
+      "hamstrings"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells",
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-12 steps per leg, rest 90 s",
+    "instructions": "Step forward and lower your back knee towards the floor, then push through the front heel to step into the next lunge.",
+    "tips": "Longer steps = more glutes; shorter steps = more quads.",
+    "avoid_if": [
+      "knee"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0336-RRWFUcw.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0336-RRWFUcw.gif",
+    "dataset_name": "dumbbell lunge",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart, holding a dumbbell in each hand.",
+      "Take a step forward with your right foot, lowering your body into a lunge position.",
+      "Keep your back straight and your chest up as you lower your body.",
+      "Push through your right heel to return to the starting position.",
+      "Repeat with your left leg."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules, en tenant un haltère dans chaque main.",
+      "Fais un pas en avant avec le pied droit, en abaissant ton corps en position de fente.",
+      "Garde le dos droit et la poitrine relevée pendant que tu abaisses ton corps.",
+      "Pousse à travers ton talon droit pour revenir à la position de départ.",
+      "Répète avec ta jambe gauche."
+    ]
+  },
+  {
+    "id": "romanian_deadlift",
+    "name": "Romanian Deadlift",
+    "muscle": "hamstrings",
+    "secondary": [
+      "glutes",
+      "lower_back"
+    ],
+    "equipment": [
+      "gym",
+      "dumbbells"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 8-12 reps, rest 90 s",
+    "instructions": "Hold a barbell or dumbbells in front of your thighs. With soft knees, push your hips back and lower the weight along your legs until you feel a hamstring stretch, then stand up.",
+    "tips": "Flat back always; the movement comes from the hips.",
+    "avoid_if": [
+      "lower back"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0085-wQ2c4XD.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0085-wQ2c4XD.gif",
+    "dataset_name": "barbell romanian deadlift",
+    "steps_en": [
+      "Stand with your feet shoulder-width apart and your toes pointing forward.",
+      "Hold the barbell with an overhand grip, hands slightly wider than shoulder-width apart.",
+      "Bend at the hips, keeping your back straight and your knees slightly bent.",
+      "Lower the barbell towards the ground, keeping it close to your body.",
+      "Feel the stretch in your hamstrings as you lower the barbell."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des épaules et les orteils pointés vers l'avant.",
+      "Tiens la barre en prise pronation, les mains un peu plus écartées que la largeur des épaules.",
+      "Fléchis les hanches en gardant ton dos droit et tes genoux légèrement fléchis.",
+      "Abaisse la barre vers le sol, en la gardant près de ton corps.",
+      "Sens l'étirement dans tes ischio-jambiers en abaissant la barre."
+    ]
+  },
+  {
+    "id": "leg_curl",
+    "name": "Lying Leg Curl",
+    "muscle": "hamstrings",
+    "secondary": [
+      "calves"
+    ],
+    "equipment": [
+      "gym"
+    ],
+    "level": "beginner",
+    "sets_reps": "3 sets of 10-15 reps, rest 60 s",
+    "instructions": "Lie face down on the machine, pad above your heels. Curl your heels towards your glutes, then lower slowly.",
+    "tips": "Don't lift the hips off the bench.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0586-17lJ1kr.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0586-17lJ1kr.gif",
+    "dataset_name": "lever lying leg curl",
+    "steps_en": [
+      "Adjust the machine to fit your body and select the desired weight.",
+      "Lie face down on the machine with your legs straight and your heels against the padded lever.",
+      "Grasp the handles or the sides of the machine for stability.",
+      "Keeping your upper body stationary, exhale and curl your legs up as far as possible without lifting your hips off the pad.",
+      "Hold the contracted position for a brief pause as you squeeze your hamstrings."
+    ],
+    "steps_fr": [
+      "Règle la machine pour l'adapter à ton corps et sélectionne le poids souhaité.",
+      "Allonge-toi face vers le bas sur la machine, les jambes droites et les talons contre le levier rembourré.",
+      "Saisis les poignées ou les côtés de la machine pour te stabiliser.",
+      "En gardant le haut de ton corps immobile, expire et fléchis tes jambes le plus loin possible sans soulever tes hanches du coussin.",
+      "Maintiens la position contractée pendant une brève pause en contractant tes ischio-jambiers."
+    ]
+  },
+  {
+    "id": "nordic_curl",
+    "name": "Nordic Hamstring Curl",
+    "muscle": "hamstrings",
+    "secondary": [],
+    "equipment": [
+      "bodyweight",
+      "gym"
+    ],
+    "level": "advanced",
+    "sets_reps": "3 sets of 3-6 reps, rest 2 min",
+    "instructions": "Kneel with your ankles anchored (under a sofa or by a partner). Lower your torso forward as slowly as possible, catch yourself with your hands, then push back up.",
+    "tips": "Very hard but excellent for preventing hamstring injuries.",
+    "avoid_if": [
+      "knee",
+      "hamstring"
+    ],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/3193-Vvwjz6N.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3193-Vvwjz6N.gif",
+    "dataset_name": "glute-ham raise",
+    "steps_en": [
+      "Adjust the glute-ham raise machine to fit your body.",
+      "Position yourself face down on the machine with your ankles secured.",
+      "Place your hands on your chest or cross them over your chest.",
+      "Engage your hamstrings and glutes to lift your upper body up towards the ceiling.",
+      "Continue lifting until your body is in a straight line from your head to your heels."
+    ],
+    "steps_fr": [
+      "Règle la machine à glute-ham raise pour l'adapter à ton corps.",
+      "Positionne-toi face contre terre sur la machine, les chevilles bien fixées.",
+      "Place tes mains sur ta poitrine ou croise-les sur ta poitrine.",
+      "Contracte tes ischio-jambiers et tes fessiers pour lever le haut du corps vers le plafond.",
+      "Continue à soulever jusqu'à ce que ton corps forme une ligne droite de ta tête à tes talons."
+    ]
+  },
+  {
+    "id": "single_leg_rdl",
+    "name": "Single-Leg Romanian Deadlift",
+    "muscle": "hamstrings",
+    "secondary": [
+      "glutes"
+    ],
+    "equipment": [
+      "bodyweight",
+      "dumbbells"
+    ],
+    "level": "intermediate",
+    "sets_reps": "3 sets of 8-10 reps per leg, rest 60-90 s",
+    "instructions": "Stand on one leg, hinge at the hips and extend the other leg behind you until your torso is nearly parallel to the floor, then return.",
+    "tips": "Great home hamstring exercise; hold a dumbbell to progress.",
+    "avoid_if": [],
+    "image_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/1757-gKozT8X.jpg",
+    "gif_url": "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1757-gKozT8X.gif",
+    "dataset_name": "dumbbell single leg deadlift",
+    "steps_en": [
+      "Stand with your feet hip-width apart, holding a dumbbell in your right hand.",
+      "Shift your weight onto your left leg and lift your right foot slightly off the ground.",
+      "Keeping your back straight, hinge forward at the hips and lower the dumbbell towards the ground.",
+      "At the same time, extend your right leg straight behind you, maintaining a slight bend in your left knee.",
+      "Lower the dumbbell until your torso and right leg are parallel to the ground."
+    ],
+    "steps_fr": [
+      "Tiens-toi debout, les pieds écartés à la largeur des hanches, en tenant un haltère dans ta main droite.",
+      "Reporte ton poids sur ta jambe gauche et soulève légèrement ton pied droit du sol.",
+      "En gardant le dos droit, bascule vers l'avant au niveau des hanches et abaisse l'haltère vers le sol.",
+      "En même temps, étends ta jambe droite tendue derrière toi en gardant une légère flexion dans ton genou gauche.",
+      "Abaisse l'haltère jusqu'à ce que ton torse et ta jambe droite soient parallèles au sol."
+    ]
+  }
+]

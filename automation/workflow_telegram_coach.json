@@ -1,0 +1,2913 @@
+{
+  "name": "GymBuddy AI — Telegram Coach (bot + reminders)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🏋️ GymBuddy AI — Telegram Coach\nPart 1 (top): **the bot**. Members chat with it on Telegram: /link, /today, /workout, /eat, /done, /log, /report, or any free question.\n\nPart 2 (bottom): **3 schedules** push messages without being asked: 07:30 morning brief, 20:30 streak nudge, Sunday 19:00 weekly recap.\n\nData: the live GymBuddy API (profile, targets, workouts, restaurants, chatbot) + 3 tabs in the CRM Google Sheet (`TG_Subscribers`, `TG_Workouts`, `TG_Meals`).\n\nBuilt on ideas from the n8n community templates #7756 (meal logger + progress bars, by John Alejandro Silva) and #16969 (Telegram fitness coach with Sheets logging, by Dr. Firas). See automation/TELEGRAM_COACH.md.",
+        "height": 360,
+        "width": 520,
+        "color": 5
+      },
+      "id": "tg-001",
+      "name": "Sticky Note 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        -380
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "tg-002",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        400
+      ],
+      "webhookId": "gymbuddy-telegram-coach",
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const m = $json.message || $json.edited_message || {};\nconst chat_id = String(m.chat?.id ?? '');\nconst first_name = m.from?.first_name || 'Athlete';\nconst text = String(m.text || m.caption || '').trim();\nlet command = 'chat', args = text;\nif (m.location) { command = 'eat'; args = ''; }\nelse if (text.startsWith('/')) {\n  const [c, ...rest] = text.split(/\\s+/);\n  command = c.slice(1).split('@')[0].toLowerCase();\n  args = rest.join(' ').trim();\n}\nconst known = ['start', 'help', 'link', 'today', 'workout', 'eat', 'done', 'log', 'report', 'stop', 'chat'];\nif (!known.includes(command)) command = 'help';\nif (command === 'start') command = 'help';\nreturn [{ json: { chat_id, first_name, text, command, args,\n  lat: m.location?.latitude ?? null, lon: m.location?.longitude ?? null } }];"
+      },
+      "id": "tg-003",
+      "name": "Parse Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-004",
+      "name": "Read Subscribers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cmd = $('Parse Command').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id);\nconst sub = rows.find(r => String(r.chat_id) === cmd.chat_id) || null;\nconst linked = !!(sub && sub.email && sub.active !== 'no');\nconst needsAccount = ['today', 'workout', 'done', 'log', 'report'];\nconst route = (!linked && needsAccount.includes(cmd.command)) ? 'notlinked' : cmd.command;\nreturn [{ json: { ...cmd, linked, sub: sub || {}, route } }];"
+      },
+      "id": "tg-005",
+      "name": "Attach Subscriber & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "help"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "link",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "link"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "today",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "today"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "workout",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "workout"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "eat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "eat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "done",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "done"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "log",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "log"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "report"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "stop",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "stop"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "notlinked",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "notlinked"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "chat"
+        }
+      },
+      "id": "tg-006",
+      "name": "Route Command",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "tg-007",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2900,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $json;\nconst hi = c.linked ? `Welcome back, <b>${esc(c.sub.name || c.first_name)}</b>! 💪` : `Hey <b>${esc(c.first_name)}</b>, I'm your <b>GymBuddy AI</b> coach on Telegram 🏋️`;\nconst text = [hi, '',\n  c.linked ? null : '1️⃣ First connect your app account: <code>/link your@email.com</code>\\n(the email you use on GymBuddy, with daily coaching turned on in your profile)\\n',\n  '<b>What I can do</b>',\n  '/today: your workout, calories, protein and water for today',\n  '/workout: the exercise list for today (or <code>/workout legs</code>)',\n  '/eat: healthy dishes in restaurants near you (send your 📍 location or <code>/eat Rabat</code>)',\n  '/done: log a finished workout and grow your 🔥 streak',\n  '/log 2 eggs and a banana: I estimate the macros and log the meal',\n  '/report: today\\'s calories and protein with progress bars',\n  '/stop: pause the daily messages', '',\n  'Or just ask me anything: \"what can I eat after leg day?\"', '',\n  `Every morning at 07:30 you get your plan, at 20:30 a reminder if you haven't trained, and on Sunday a weekly recap.`,\n  `📱 App: ${'https://gymbuddy-ai-phi.vercel.app'}`].filter(l => l !== null).join('\\n');\nreturn [{ json: { chat_id: c.chat_id, text } }];"
+      },
+      "id": "tg-008",
+      "name": "Help Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "tg-009",
+      "name": "Digest (link)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        -740
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst email = (c.args || '').toLowerCase().trim();\nconst d = $input.first().json;\nif (!email.includes('@')) return [{ json: { ok: false, chat_id: c.chat_id, text: 'Send it like this: <code>/link your@email.com</code>' } }];\nif (!Array.isArray(d.users)) return [{ json: { ok: false, chat_id: c.chat_id, text: '⚠️ I could not reach the GymBuddy app right now. Try again in a minute.' } }];\nconst u = d.users.find(x => (x.email || '').toLowerCase() === email);\nif (!u) return [{ json: { ok: false, chat_id: c.chat_id, text: `I can't find <b>${esc(email)}</b> among members with daily coaching turned on.\\nOpen ${'https://gymbuddy-ai-phi.vercel.app'} → Profile → turn on <b>daily coaching</b>, then send /link again.` } }];\nconst s = c.sub || {};\nconst rowData = { chat_id: c.chat_id, email, user_id: u.user_id, name: u.name || c.first_name,\n  calories_target: u.calories, protein_g: u.protein_g, water_l: u.water_l, language: u.language || 'en',\n  streak: s.streak || 0, best_streak: s.best_streak || 0, total_workouts: s.total_workouts || 0,\n  last_done: s.last_done || '', active: 'yes', linked_at: $now.toISO() };\nconst text = `✅ Linked to <b>${esc(rowData.name)}</b>'s GymBuddy account.\\n\\n🎯 Goal: ${esc(u.goal)}\\n🔥 ${u.calories} kcal · 🥩 ${u.protein_g} g protein · 💧 ${u.water_l} L water\\n🏋️ Today: <b>${esc(u.today_workout)}</b>\\n\\nTry /today or /workout.`;\nreturn [{ json: { ok: true, chat_id: c.chat_id, row: rowData, text } }];"
+      },
+      "id": "tg-010",
+      "name": "Verify Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -740
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c10",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-011",
+      "name": "Email Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        -740
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.row.chat_id }}",
+            "email": "={{ $json.row.email }}",
+            "user_id": "={{ $json.row.user_id }}",
+            "name": "={{ $json.row.name }}",
+            "calories_target": "={{ $json.row.calories_target }}",
+            "protein_g": "={{ $json.row.protein_g }}",
+            "water_l": "={{ $json.row.water_l }}",
+            "language": "={{ $json.row.language }}",
+            "streak": "={{ $json.row.streak }}",
+            "best_streak": "={{ $json.row.best_streak }}",
+            "total_workouts": "={{ $json.row.total_workouts }}",
+            "last_done": "={{ $json.row.last_done }}",
+            "active": "={{ $json.row.active }}",
+            "linked_at": "={{ $json.row.linked_at }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "calories_target",
+              "displayName": "calories_target",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "protein_g",
+              "displayName": "protein_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "water_l",
+              "displayName": "water_l",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "streak",
+              "displayName": "streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "best_streak",
+              "displayName": "best_streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_workouts",
+              "displayName": "total_workouts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_done",
+              "displayName": "last_done",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "active",
+              "displayName": "active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linked_at",
+              "displayName": "linked_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-012",
+      "name": "Save Subscriber",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        -800
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const v = $('Verify Email').first().json;\nreturn [{ json: { chat_id: v.chat_id, text: v.text } }];"
+      },
+      "id": "tg-013",
+      "name": "Link Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2020,
+        -800
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "tg-014",
+      "name": "Digest (today)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        -480
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase());\nconst member = u || { name: s.name, today_workout: 'Your planned session', calories: s.calories_target,\n  protein_g: s.protein_g, water_l: s.water_l, language: s.language, goal: '', diet: '', allergies: [], injuries: [], equipment: '' };\nreturn [{ json: { chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: u?.user_id || s.user_id, member } }];"
+      },
+      "id": "tg-015",
+      "name": "Pick Member (today)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, an upbeat but precise gym coach writing a Telegram message. Using the member JSON, write max 120 words: 1) today's session focus with 2-3 key exercises and one technique cue (respect equipment and injuries), 2) one simple meal idea that fits the calorie/protein targets and respects diet and allergies, 3) one short motivational line that mentions the streak if it is above 0. Use short lines and emojis, no tables, no markdown headings. Answer in the member's language (en or fr).\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "tg-016",
+      "name": "AI Today Plan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        -480
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst p = $('Pick Member (today)').first().json; const m = p.member;\nconst body = aiText($input.first().json) || `Focus on clean reps and full range of motion. Eat a protein source at every meal and keep a bottle of water with you.`;\nconst text = `<b>🏋️ Today: ${esc(m.today_workout)}</b>\\n🔥 ${m.calories} kcal · 🥩 ${m.protein_g} g protein · 💧 ${m.water_l} L\\n\\n${tg(body)}\\n\\n${p.streak > 0 ? `Streak: ${p.streak} 🔥 · ` : ''}/workout for the exercise list · /done when finished`;\nreturn [{ json: { chat_id: p.chat_id, text } }];"
+      },
+      "id": "tg-017",
+      "name": "Format Today",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        -480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "tg-018",
+      "name": "Digest (workout)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        -220
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase());\nconst member = u || { name: s.name, today_workout: 'Your planned session', calories: s.calories_target,\n  protein_g: s.protein_g, water_l: s.water_l, language: s.language, goal: '', diet: '', allergies: [], injuries: [], equipment: '' };\nconst map = { push: 'push', pull: 'pull', legs: 'legs', leg: 'legs', upper: 'upper', lower: 'lower', full: 'full_body', 'full body': 'full_body', arms: 'bro_arms', chest: 'bro_chest', back: 'bro_back', shoulders: 'bro_shoulders', glutes: 'glutes_abs', abs: 'glutes_abs', core: 'glutes_abs' };\nconst ask = String(c.args || '').toLowerCase().trim();\nconst planned = String(member.today_workout || '').toLowerCase();\nconst isRest = !ask && planned.startsWith('rest');\nconst key = Object.keys(map).find(k => ask.startsWith(k)) || Object.keys(map).find(k => planned.startsWith(k));\nconst split = isRest ? 'glutes_abs' : (map[key] || 'full_body');\nreturn [{ json: { split, isRest, chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: u?.user_id || s.user_id, member } }];"
+      },
+      "id": "tg-019",
+      "name": "Pick Split",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/workouts/session' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "split",
+              "value": "={{ $json.split }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id || '' }}"
+            }
+          ]
+        }
+      },
+      "id": "tg-020",
+      "name": "Get Workout Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        -220
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst p = $('Pick Split').first().json;\nconst w = $input.first().json;\nif (!Array.isArray(w.exercises) || !w.exercises.length)\n  return [{ json: { chat_id: p.chat_id, text: '⚠️ I could not load the workout from the app. Open https://gymbuddy-ai-phi.vercel.app/gym and start it there.' } }];\nconst lines = w.exercises.map((e, i) => {\n  const demo = e.gif_url ? ` · <a href=\"${esc(e.gif_url)}\">demo</a>` : '';\n  const warn = (e.injury_warning || []).length ? `\\n   ⚠️ careful with: ${esc(e.injury_warning.join(', '))}` : '';\n  return `${i + 1}. <b>${esc(e.name)}</b> (${esc(e.muscle_name)})\\n   ${e.sets} × ${esc(e.target_reps)} · rest ${e.rest_sec}s${demo}${warn}`;\n});\nconst head = p.isRest ? `😴 Today is a <b>rest day</b> in your plan. If you still want to move, here is a light core & glutes session:\\n\\n` : '';\nconst text = `${head}<b>📋 ${esc(w.title)}</b>\\n\\n${lines.join('\\n')}\\n\\n⏱️ Run it with the in-gym chrono: https://gymbuddy-ai-phi.vercel.app/gym\\nSend /done when you finish 🔥`;\nreturn [{ json: { chat_id: p.chat_id, text } }];"
+      },
+      "id": "tg-021",
+      "name": "Format Workout",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $json;\nconst city = c.args || '';\nconst ok = (c.lat !== null && c.lon !== null) || city.length > 1;\nreturn [{ json: { ok, chat_id: c.chat_id, body: { lat: c.lat, lon: c.lon, city, user_id: c.sub.user_id || null },\n  kcal_target: Number(c.sub.calories_target || 0), protein_target: Number(c.sub.protein_g || 0),\n  text: '📍 Send me your <b>location</b> (📎 → Location) or a city: <code>/eat Casablanca</code>' } }];"
+      },
+      "id": "tg-022",
+      "name": "Restaurant Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c22",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-023",
+      "name": "Has Location?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/restaurants/nearby' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 40000
+        }
+      },
+      "id": "tg-024",
+      "name": "Find Healthy Restaurants",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        -20
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst q = $('Restaurant Query').first().json;\nconst r = $input.first().json;\nconst list = (r.restaurants || []).slice(0, 4);\nconst mealBudget = q.kcal_target ? Math.round(q.kcal_target / 3) : 0;\nif (!list.length) {\n  const text = `🍽️ I couldn't find restaurants near <b>${esc(r.location || q.body.city || 'you')}</b> right now.\\n\\nSafe picks almost everywhere:\\n• Grilled chicken or fish + vegetables + rice (sauce on the side)\\n• Poke / salad bowl with double protein\\n• Omelette + salad + bread\\n\\nTry a bigger city name, e.g. <code>/eat Rabat</code>.`;\n  return [{ json: { chat_id: q.chat_id, text } }];\n}\nconst lines = list.map((x, i) => {\n  const fit = mealBudget ? (x.est_kcal <= mealBudget * 1.1 ? '✅ fits your meal budget' : '⚠️ above your meal budget, skip the bread or share a side') : '';\n  return `${i + 1}. <b>${esc(x.name)}</b> · ${esc(x.cuisine)} · ${x.distance_km} km\\n   🍽️ ${esc(x.recommended_dish)}\\n   ~${x.est_kcal} kcal · ${x.est_protein_g} g protein ${fit}\\n   <a href=\"${esc(x.maps_url)}\">Open in Maps</a>`;\n});\nconst text = `<b>🥗 Healthy picks near ${esc(r.location)}</b>${mealBudget ? `\\nYour budget per meal: ~${mealBudget} kcal, ${Math.round(q.protein_target / 3)} g protein` : ''}\\n\\n${lines.join('\\n\\n')}\\n\\nAfter you eat, log it with <code>/log</code> + what you ate.`;\nreturn [{ json: { chat_id: q.chat_id, text } }];"
+      },
+      "id": "tg-025",
+      "name": "Format Restaurants",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $json; const s = c.sub;\nconst last = s.last_done ? DateTime.fromISO(String(s.last_done)) : null;\nconst gap = last && last.isValid ? Math.floor($now.startOf('day').diff(last.startOf('day'), 'days').days) : 999;\nlet streak = Number(s.streak || 0);\nconst already = gap === 0;\nif (!already) streak = gap <= 3 ? streak + 1 : 1;   // up to 2 rest days in a row keep the streak alive\nconst best = Math.max(Number(s.best_streak || 0), streak);\nconst total = Number(s.total_workouts || 0) + (already ? 0 : 1);\nconst badges = { 3: '🥉 3-workout streak', 7: '🥈 7-workout streak', 14: '🥇 14-workout streak', 30: '🏆 30-workout streak', 50: '💎 50-workout legend' };\nconst hype = ['Beast mode 🦍', 'That is how progress is built 🧱', 'Future you says thanks 🙌', 'One more brick in the wall 💪', 'Consistency beats motivation 🔁'];\nlet text;\nif (already) text = `You already logged a workout today ✅ Streak stays at <b>${streak}</b> 🔥\\nRest well and hit your protein (${s.protein_g || '?'} g).`;\nelse {\n  text = `<b>${hype[total % hype.length]}</b>\\n\\n✅ Workout #${total} logged${c.args ? `: ${esc(c.args)}` : ''}\\n🔥 Streak: <b>${streak}</b> (best ${best})`;\n  if (badges[streak]) text += `\\n\\n🎖️ New badge unlocked: <b>${badges[streak]}</b>!`;\n  text += `\\n\\nRecovery: eat ~${Math.round((s.protein_g || 120) / 3)} g protein in the next 2 hours and drink water 💧`;\n}\nreturn [{ json: { chat_id: c.chat_id, text, already, streak, best, total, workout: c.args || '' } }];"
+      },
+      "id": "tg-026",
+      "name": "Update Streak",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "streak": "={{ $json.streak }}",
+            "best_streak": "={{ $json.best }}",
+            "total_workouts": "={{ $json.total }}",
+            "last_done": "={{ $now.toFormat('yyyy-MM-dd') }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "streak",
+              "displayName": "streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "best_streak",
+              "displayName": "best_streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_workouts",
+              "displayName": "total_workouts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_done",
+              "displayName": "last_done",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-027",
+      "name": "Save Streak",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1360,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Workouts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Update Streak').item.json.chat_id }}",
+            "date": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "time": "={{ $now.toFormat('HH:mm') }}",
+            "workout": "={{ $('Update Streak').item.json.workout }}",
+            "streak": "={{ $('Update Streak').item.json.streak }}"
+          },
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workout",
+              "displayName": "workout",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "streak",
+              "displayName": "streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-028",
+      "name": "Log Workout",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1580,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const u = $('Update Streak').first().json;\nreturn [{ json: { chat_id: u.chat_id, text: u.text } }];"
+      },
+      "id": "tg-029",
+      "name": "Done Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $json;\nreturn [{ json: { ok: c.args.length > 2, meal: c.args, chat_id: c.chat_id, language: c.sub.language || 'en',\n  text: 'Tell me what you ate, e.g. <code>/log chicken tajine and a small bread</code>' } }];"
+      },
+      "id": "tg-030",
+      "name": "Meal Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c30",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-031",
+      "name": "Has Meal Text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.2, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are a sports nutritionist. Estimate the nutrition of the meal the user describes, using typical portions (Moroccan and Mediterranean dishes are common). Reply with ONLY a JSON object, no text around it: {\\\"meal\\\": short clean name, \\\"calories\\\": number, \\\"protein_g\\\": number, \\\"carbs_g\\\": number, \\\"fat_g\\\": number, \\\"tip\\\": one short sentence to make it healthier or a compliment}.\" }, { role: 'user', content: $json.meal } ] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "tg-032",
+      "name": "AI Estimate Macros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        500
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst q = $('Meal Input').first().json;\nlet m = null;\ntry { const raw = aiText($input.first().json); m = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch (e) { m = null; }\nconst ok = m && Number(m.calories) > 0;\nconst r = { chat_id: q.chat_id, date: today, time: $now.toFormat('HH:mm'), meal: ok ? String(m.meal || q.meal) : q.meal,\n  calories: ok ? Math.round(m.calories) : 0, protein_g: ok ? Math.round(m.protein_g || 0) : 0,\n  carbs_g: ok ? Math.round(m.carbs_g || 0) : 0, fat_g: ok ? Math.round(m.fat_g || 0) : 0 };\nr.text = ok\n  ? `🍽️ Logged: <b>${esc(r.meal)}</b>\\n🔥 ${r.calories} kcal · 🥩 ${r.protein_g} g protein · 🍚 ${r.carbs_g} g carbs · 🥑 ${r.fat_g} g fat\\n${m.tip ? `\\n💡 ${esc(m.tip)}\\n` : ''}\\nSee your day with /report`\n  : `🍽️ Logged <b>${esc(q.meal)}</b>, but I couldn't estimate the macros right now (saved as 0 kcal). Try again later or describe portions, e.g. \"200 g chicken + 1 cup rice\".`;\nreturn [{ json: r }];"
+      },
+      "id": "tg-033",
+      "name": "Parse Macros",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Meals",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "date": "={{ $json.date }}",
+            "time": "={{ $json.time }}",
+            "meal": "={{ $json.meal }}",
+            "calories": "={{ $json.calories }}",
+            "protein_g": "={{ $json.protein_g }}",
+            "carbs_g": "={{ $json.carbs_g }}",
+            "fat_g": "={{ $json.fat_g }}"
+          },
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "meal",
+              "displayName": "meal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "calories",
+              "displayName": "calories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "protein_g",
+              "displayName": "protein_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "carbs_g",
+              "displayName": "carbs_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fat_g",
+              "displayName": "fat_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-034",
+      "name": "Log Meal",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2020,
+        500
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Parse Macros').first().json;\nreturn [{ json: { chat_id: p.chat_id, text: p.text } }];"
+      },
+      "id": "tg-035",
+      "name": "Meal Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Meals",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-036",
+      "name": "Read Meals (report)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1140,
+        820
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json; const s = c.sub;\nconst meals = $input.all().map(i => i.json).filter(m => String(m.chat_id) === c.chat_id && String(m.date) === today);\nconst sum = k => meals.reduce((a, m) => a + Number(m[k] || 0), 0);\nconst kcal = sum('calories'), prot = sum('protein_g');\nconst tK = Number(s.calories_target || 0), tP = Number(s.protein_g || 0);\nlet text = `<b>📊 Today's nutrition</b> (${today})\\n\\n🔥 Calories ${kcal} / ${tK}\\n${bar(kcal, tK)}\\n🥩 Protein ${prot} / ${tP} g\\n${bar(prot, tP)}\\n💧 Water goal: ${s.water_l || '?'} L\\n`;\nif (!meals.length) text += `\\nNo meals logged yet. Use <code>/log</code> + what you ate.`;\nelse {\n  text += `\\n<b>Meals</b>\\n` + meals.map(m => `• ${esc(m.time)} ${esc(m.meal)} (${m.calories} kcal, ${m.protein_g} g)`).join('\\n');\n  const left = tP - prot;\n  text += left > 0 ? `\\n\\n💡 ${left} g protein to go: ${left > 40 ? 'a chicken breast or a tuna can + Greek yogurt' : 'a Greek yogurt or 3 eggs'} will do it.` : `\\n\\n✅ Protein goal reached, nice!`;\n  if (tK && kcal > tK * 1.1) text += `\\n⚠️ You're over your calories today, keep dinner light.`;\n}\nreturn [{ json: { chat_id: c.chat_id, text } }];"
+      },
+      "id": "tg-037",
+      "name": "Build Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "active": "no"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "active",
+              "displayName": "active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-038",
+      "name": "Pause Subscriber",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1140,
+        1080
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nreturn [{ json: { chat_id: c.chat_id, text: '⏸️ Daily messages paused. Send <code>/link your@email.com</code> any time to turn them back on.' } }];"
+      },
+      "id": "tg-039",
+      "name": "Stop Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        1080
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $json;\nreturn [{ json: { chat_id: c.chat_id, text: '🔗 First connect your GymBuddy account so I know your plan:\\n<code>/link your@email.com</code>\\n\\nNo account yet? Create one free at https://gymbuddy-ai-phi.vercel.app' } }];"
+      },
+      "id": "tg-040",
+      "name": "Ask To Link",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        1340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/chat' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ user_id: $json.sub.user_id || 'unknown', message: $json.text }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "tg-041",
+      "name": "Ask GymBuddy Chatbot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        1600
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c41",
+              "leftValue": "={{ !!$json.reply }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-042",
+      "name": "App Answered?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json; const r = $input.first().json;\nconst src = (r.sources || []).slice(0, 3).map(s => s.title || s.name || s.id).filter(Boolean);\nreturn [{ json: { chat_id: c.chat_id, text: `${tg(r.reply)}${src.length ? `\\n\\n📚 <i>${esc(src.join(' · '))}</i>` : ''}` } }];"
+      },
+      "id": "tg-043",
+      "name": "Format App Answer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        1540
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a friendly evidence-based gym and nutrition coach on Telegram. Answer in max 120 words, in the user's language, with practical steps. For pain, injury or medical questions, advise seeing a professional. Never recommend drugs or extreme diets.\" }, { role: 'user', content: $('Attach Subscriber & Route').first().json.text } ] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "tg-044",
+      "name": "AI Coach (backup)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        1680
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst t = aiText($input.first().json) || 'I am a bit overloaded right now 😅 Try again in a minute, or use /today and /workout.';\nreturn [{ json: { chat_id: c.chat_id, text: tg(t) + (c.linked ? '' : '\\n\\n🔗 Link your account for personal answers: <code>/link your@email.com</code>') } }];"
+      },
+      "id": "tg-045",
+      "name": "Format Backup Answer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        1680
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 💬 Bot commands\nOne Switch routes every Telegram message. Commands that need the member's plan are sent to *Ask To Link* until the member runs `/link email` (checked against the app's opted-in members). Free text goes to the app's own RAG chatbot (`/api/chat`); if the app can't answer, the AI model answers directly.",
+        "height": 160,
+        "width": 640,
+        "color": 4
+      },
+      "id": "tg-046",
+      "name": "Sticky Note 46",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        -1180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### ⏰ Scheduled coaching\nMorning brief (AI, 1 request per member), evening nudge (no AI, only members who planned to train and haven't sent /done), Sunday recap (AI, uses the logged workouts and meals).",
+        "height": 140,
+        "width": 640,
+        "color": 6
+      },
+      "id": "tg-047",
+      "name": "Sticky Note 47",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        1700
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "tg-048",
+      "name": "Every Day 07:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1900
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-049",
+      "name": "Read Subscribers (AM)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        1900
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "tg-050",
+      "name": "Digest (AM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        1900
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const subs = $('Read Subscribers (AM)').all().map(i => i.json).filter(s => s && s.chat_id && s.email && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) || {};\n  return { json: { chat_id: String(s.chat_id), name: u.name || s.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''),\n    member: { name: u.name || s.name, goal: u.goal, today_workout: u.today_workout || 'Your planned session', equipment: u.equipment,\n      calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g, water_l: u.water_l || s.water_l,\n      diet: u.diet, allergies: u.allergies, injuries: u.injuries, language: u.language || s.language || 'en' } } };\n});"
+      },
+      "id": "tg-051",
+      "name": "Join Members (AM)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        1900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a motivating gym coach. Write a Telegram good-morning message (max 90 words) for this member: greet by first name, today's session focus with one key exercise and cue (or a recovery idea on rest days), the calorie/protein/water targets in one line, one breakfast idea that respects diet and allergies, and a punchy closing line (mention the streak if above 0). Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "tg-052",
+      "name": "AI Morning Brief",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        1900
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst j = $('Join Members (AM)').item.json; const m = j.member;\nconst body = aiText($json) || `Good morning ${m.name || ''}! ☀️ Today: ${m.today_workout}. Targets: ${m.calories} kcal, ${m.protein_g} g protein, ${m.water_l} L water. Let's go 💪`;\nreturn { json: { chat_id: j.chat_id, text: `<b>☀️ ${esc(m.today_workout)}</b>\\n\\n${tg(body)}\\n\\n/workout · /eat · /done` } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "tg-053",
+      "name": "Format Morning",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        1900
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "tg-054",
+      "name": "Send Morning Brief",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1320,
+        1900
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "tg-055",
+      "name": "Every Day 20:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-056",
+      "name": "Read Subscribers (PM)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        2160
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "id": "tg-057",
+      "name": "Digest (PM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        2160
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const subs = $('Read Subscribers (PM)').all().map(i => i.json).filter(s => s && s.chat_id && s.email && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) || {};\n  return { json: { chat_id: String(s.chat_id), name: u.name || s.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''),\n    member: { name: u.name || s.name, goal: u.goal, today_workout: u.today_workout || 'Your planned session', equipment: u.equipment,\n      calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g, water_l: u.water_l || s.water_l,\n      diet: u.diet, allergies: u.allergies, injuries: u.injuries, language: u.language || s.language || 'en' } } };\n});"
+      },
+      "id": "tg-058",
+      "name": "Join Members (PM)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst lines = ['A short session beats no session. Even 20 minutes counts ⏱️', 'You don\\'t have to be extreme, just consistent 🔁',\n  'Put your shoes on. That\\'s the hardest rep 👟', 'Your future self is watching 👀', 'Motivation fades, habits stay. Go build one 🧱'];\nconst day = Number($now.toFormat('o'));\nreturn $input.all().map(i => i.json)\n  .filter(j => !String(j.member.today_workout).toLowerCase().startsWith('rest') && j.last_done !== today)\n  .map((j, k) => ({ json: { chat_id: j.chat_id, text:\n    `<b>⏰ ${esc(j.member.today_workout)} is still on the plan today</b>\\n\\n${j.streak > 0 ? `Your 🔥 <b>${j.streak}</b> streak is waiting for you. ` : ''}${lines[(day + k) % lines.length]}\\n\\nNo time? Do 3 rounds: 15 squats, 10 push-ups, 30 s plank.\\nSend /done when finished.` } }));"
+      },
+      "id": "tg-059",
+      "name": "Who Needs a Nudge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "tg-060",
+      "name": "Send Evening Nudge",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1100,
+        2160
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 19 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "tg-061",
+      "name": "Sunday 19:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2420
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-062",
+      "name": "Read Subscribers (W)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        2420
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Workouts",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-063",
+      "name": "Read Workouts (W)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        2420
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Meals",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "tg-064",
+      "name": "Read Meals (W)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        2420
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const since = $now.minus({ days: 6 }).toFormat('yyyy-MM-dd');\nconst subs = $('Read Subscribers (W)').all().map(i => i.json).filter(s => s && s.chat_id && s.active !== 'no');\nconst wos = $('Read Workouts (W)').all().map(i => i.json).filter(w => w.chat_id && String(w.date) >= since);\nconst meals = $('Read Meals (W)').all().map(i => i.json).filter(m => m.chat_id && String(m.date) >= since);\nreturn subs.map(s => {\n  const id = String(s.chat_id);\n  const mw = meals.filter(m => String(m.chat_id) === id);\n  const days = [...new Set(mw.map(m => String(m.date)))];\n  const avg = k => days.length ? Math.round(mw.reduce((a, m) => a + Number(m[k] || 0), 0) / days.length) : 0;\n  return { json: { chat_id: id, stats: { name: s.name, language: s.language || 'en',\n    workouts_this_week: new Set(wos.filter(w => String(w.chat_id) === id).map(w => String(w.date))).size,\n    streak: Number(s.streak || 0), best_streak: Number(s.best_streak || 0), total_workouts: Number(s.total_workouts || 0),\n    days_with_meals_logged: days.length, avg_calories: avg('calories'), avg_protein_g: avg('protein_g'),\n    calories_target: Number(s.calories_target || 0), protein_target: Number(s.protein_g || 0) } } };\n});"
+      },
+      "id": "tg-065",
+      "name": "Weekly Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        2420
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a supportive coach. Write a Telegram weekly recap (max 110 words) from these stats: celebrate the wins with numbers, point out ONE thing to improve next week (training consistency, protein or calories vs target, or logging more meals), and give one concrete mini-challenge for next week. Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify($json.stats) } ] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "tg-066",
+      "name": "AI Weekly Recap",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        2420
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst j = $('Weekly Stats').item.json; const s = j.stats;\nconst body = aiText($json) || `This week: ${s.workouts_this_week} workouts, streak ${s.streak}. Next week: one more session than this week 💪`;\nreturn { json: { chat_id: j.chat_id, text: `<b>📅 Your week with GymBuddy</b>\\n🏋️ Workouts: ${s.workouts_this_week} · 🔥 Streak: ${s.streak} (best ${s.best_streak})\\n🍽️ Avg: ${s.avg_calories}/${s.calories_target} kcal · ${s.avg_protein_g}/${s.protein_target} g protein (${s.days_with_meals_logged} days logged)\\n${bar(s.workouts_this_week, 4)} of a 4-workout week\\n\\n${tg(body)}` } };",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "tg-067",
+      "name": "Format Weekly",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        2420
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "tg-068",
+      "name": "Send Weekly Recap",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1540,
+        2420
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Command": {
+      "main": [
+        [
+          {
+            "node": "Read Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Attach Subscriber & Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Subscriber & Route": {
+      "main": [
+        [
+          {
+            "node": "Route Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Command": {
+      "main": [
+        [
+          {
+            "node": "Help Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Digest (link)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Digest (today)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Digest (workout)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restaurant Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Streak",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Meal Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Meals (report)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pause Subscriber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask To Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask GymBuddy Chatbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Help Text": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest (link)": {
+      "main": [
+        [
+          {
+            "node": "Verify Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Email": {
+      "main": [
+        [
+          {
+            "node": "Email Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Found?": {
+      "main": [
+        [
+          {
+            "node": "Save Subscriber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Subscriber": {
+      "main": [
+        [
+          {
+            "node": "Link Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest (today)": {
+      "main": [
+        [
+          {
+            "node": "Pick Member (today)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Member (today)": {
+      "main": [
+        [
+          {
+            "node": "AI Today Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Today Plan": {
+      "main": [
+        [
+          {
+            "node": "Format Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Today": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest (workout)": {
+      "main": [
+        [
+          {
+            "node": "Pick Split",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Split": {
+      "main": [
+        [
+          {
+            "node": "Get Workout Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workout Session": {
+      "main": [
+        [
+          {
+            "node": "Format Workout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Workout": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restaurant Query": {
+      "main": [
+        [
+          {
+            "node": "Has Location?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Location?": {
+      "main": [
+        [
+          {
+            "node": "Find Healthy Restaurants",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Healthy Restaurants": {
+      "main": [
+        [
+          {
+            "node": "Format Restaurants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Restaurants": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Streak": {
+      "main": [
+        [
+          {
+            "node": "Save Streak",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Streak": {
+      "main": [
+        [
+          {
+            "node": "Log Workout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Workout": {
+      "main": [
+        [
+          {
+            "node": "Done Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Done Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meal Input": {
+      "main": [
+        [
+          {
+            "node": "Has Meal Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Meal Text?": {
+      "main": [
+        [
+          {
+            "node": "AI Estimate Macros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Estimate Macros": {
+      "main": [
+        [
+          {
+            "node": "Parse Macros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Macros": {
+      "main": [
+        [
+          {
+            "node": "Log Meal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Meal": {
+      "main": [
+        [
+          {
+            "node": "Meal Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meal Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Meals (report)": {
+      "main": [
+        [
+          {
+            "node": "Build Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause Subscriber": {
+      "main": [
+        [
+          {
+            "node": "Stop Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask To Link": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask GymBuddy Chatbot": {
+      "main": [
+        [
+          {
+            "node": "App Answered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App Answered?": {
+      "main": [
+        [
+          {
+            "node": "Format App Answer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Coach (backup)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format App Answer": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Coach (backup)": {
+      "main": [
+        [
+          {
+            "node": "Format Backup Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Backup Answer": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Day 07:30": {
+      "main": [
+        [
+          {
+            "node": "Read Subscribers (AM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Subscribers (AM)": {
+      "main": [
+        [
+          {
+            "node": "Digest (AM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest (AM)": {
+      "main": [
+        [
+          {
+            "node": "Join Members (AM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join Members (AM)": {
+      "main": [
+        [
+          {
+            "node": "AI Morning Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Morning Brief": {
+      "main": [
+        [
+          {
+            "node": "Format Morning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Morning": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Day 20:30": {
+      "main": [
+        [
+          {
+            "node": "Read Subscribers (PM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Subscribers (PM)": {
+      "main": [
+        [
+          {
+            "node": "Digest (PM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest (PM)": {
+      "main": [
+        [
+          {
+            "node": "Join Members (PM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Join Members (PM)": {
+      "main": [
+        [
+          {
+            "node": "Who Needs a Nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Who Needs a Nudge": {
+      "main": [
+        [
+          {
+            "node": "Send Evening Nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sunday 19:00": {
+      "main": [
+        [
+          {
+            "node": "Read Subscribers (W)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Subscribers (W)": {
+      "main": [
+        [
+          {
+            "node": "Read Workouts (W)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Workouts (W)": {
+      "main": [
+        [
+          {
+            "node": "Read Meals (W)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Meals (W)": {
+      "main": [
+        [
+          {
+            "node": "Weekly Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Stats": {
+      "main": [
+        [
+          {
+            "node": "AI Weekly Recap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Weekly Recap": {
+      "main": [
+        [
+          {
+            "node": "Format Weekly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Weekly": {
+      "main": [
+        [
+          {
+            "node": "Send Weekly Recap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Casablanca"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    "gymbuddy",
+    "telegram",
+    "ai",
+    "coaching"
+  ]
+}

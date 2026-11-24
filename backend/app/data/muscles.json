@@ -1,0 +1,17 @@
+[
+  {"id": "chest", "name": "Chest", "view": ["front"], "aliases": ["chest", "pecs", "pectorals", "pectoraux", "poitrine", "pecs"]},
+  {"id": "shoulders", "name": "Shoulders", "view": ["front", "back"], "aliases": ["shoulders", "shoulder", "delts", "deltoids", "epaules", "épaules", "epaule"]},
+  {"id": "biceps", "name": "Biceps", "view": ["front"], "aliases": ["biceps", "bicep", "arms"]},
+  {"id": "triceps", "name": "Triceps", "view": ["back"], "aliases": ["triceps", "tricep"]},
+  {"id": "forearms", "name": "Forearms", "view": ["front", "back"], "aliases": ["forearms", "forearm", "grip", "avant-bras", "avant bras"]},
+  {"id": "abs", "name": "Abs", "view": ["front"], "aliases": ["abs", "abdominals", "core", "six pack", "abdos", "abdominaux"]},
+  {"id": "obliques", "name": "Obliques", "view": ["front"], "aliases": ["obliques", "oblique", "love handles", "side abs"]},
+  {"id": "quads", "name": "Quadriceps", "view": ["front"], "aliases": ["quads", "quadriceps", "thighs", "cuisses", "quadri"]},
+  {"id": "adductors", "name": "Adductors", "view": ["front"], "aliases": ["adductors", "inner thigh", "adducteurs"]},
+  {"id": "calves", "name": "Calves", "view": ["front", "back"], "aliases": ["calves", "calf", "mollets", "mollet"]},
+  {"id": "traps", "name": "Trapezius", "view": ["back"], "aliases": ["traps", "trapezius", "trapèzes", "trapezes"]},
+  {"id": "upper_back", "name": "Upper Back & Lats", "view": ["back"], "aliases": ["back", "lats", "latissimus", "upper back", "dos", "dorsaux", "rhomboids"]},
+  {"id": "lower_back", "name": "Lower Back", "view": ["back"], "aliases": ["lower back", "lombaires", "erector", "erectors", "bas du dos"]},
+  {"id": "glutes", "name": "Glutes", "view": ["back"], "aliases": ["glutes", "glute", "butt", "fessiers", "fesses"]},
+  {"id": "hamstrings", "name": "Hamstrings", "view": ["back"], "aliases": ["hamstrings", "hamstring", "ischios", "ischio-jambiers"]}
+]
