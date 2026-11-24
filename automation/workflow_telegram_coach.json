@@ -1,9 +1,9 @@
 {
-  "name": "GymBuddy AI — Telegram Coach (bot + reminders)",
+  "name": "GymBuddy AI — Telegram Coach (open to everyone)",
   "nodes": [
     {
       "parameters": {
-        "content": "## 🏋️ GymBuddy AI — Telegram Coach\nPart 1 (top): **the bot**. Members chat with it on Telegram: /link, /today, /workout, /eat, /done, /log, /report, or any free question.\n\nPart 2 (bottom): **3 schedules** push messages without being asked: 07:30 morning brief, 20:30 streak nudge, Sunday 19:00 weekly recap.\n\nData: the live GymBuddy API (profile, targets, workouts, restaurants, chatbot) + 3 tabs in the CRM Google Sheet (`TG_Subscribers`, `TG_Workouts`, `TG_Meals`).\n\nBuilt on ideas from the n8n community templates #7756 (meal logger + progress bars, by John Alejandro Silva) and #16969 (Telegram fitness coach with Sheets logging, by Dr. Firas). See automation/TELEGRAM_COACH.md.",
+        "content": "## 🏋️ GymBuddy AI — Telegram Coach (open to everyone)\nPart 1 (top): **the bot**. Anyone on Telegram can use it, no website account needed: /profile, /today, /workout, /muscle, /cook (recipe + dish image), 📷 photo scan, /scan barcode, /eat, /done, /log, /report, or any free question.\n\nPart 2 (bottom): **3 schedules** push messages without being asked: 07:30 morning brief, 20:30 streak nudge, Sunday 19:00 weekly recap.\n\nData: the live GymBuddy API (profile, targets, workouts, restaurants, chatbot, vision, fridge chef) + 3 tabs in the Google Sheet (`TG_Subscribers`, `TG_Workouts`, `TG_Meals`).\n\nBuilt on ideas from the n8n community templates #7756 (John Alejandro Silva) and #16969 (Dr. Firas). See automation/TELEGRAM_COACH.md.",
         "height": 360,
         "width": 520,
         "color": 5
@@ -42,7 +42,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const m = $json.message || $json.edited_message || {};\nconst chat_id = String(m.chat?.id ?? '');\nconst first_name = m.from?.first_name || 'Athlete';\nconst text = String(m.text || m.caption || '').trim();\nlet command = 'chat', args = text;\nif (m.location) { command = 'eat'; args = ''; }\nelse if (text.startsWith('/')) {\n  const [c, ...rest] = text.split(/\\s+/);\n  command = c.slice(1).split('@')[0].toLowerCase();\n  args = rest.join(' ').trim();\n}\nconst known = ['start', 'help', 'link', 'today', 'workout', 'eat', 'done', 'log', 'report', 'stop', 'chat'];\nif (!known.includes(command)) command = 'help';\nif (command === 'start') command = 'help';\nreturn [{ json: { chat_id, first_name, text, command, args,\n  lat: m.location?.latitude ?? null, lon: m.location?.longitude ?? null } }];"
+        "jsCode": "const m = $json.message || $json.edited_message || {};\nconst chat_id = String(m.chat?.id ?? '');\nconst first_name = m.from?.first_name || 'Athlete';\nconst text = String(m.text || m.caption || '').trim();\nconst lang_hint = String(m.from?.language_code || '').startsWith('fr') ? 'fr' : 'en';\nconst photo = Array.isArray(m.photo) && m.photo.length ? m.photo[m.photo.length - 1].file_id : null;\nlet command = 'chat', args = text;\nif (m.location) { command = 'eat'; args = ''; }\nelse if (photo) { command = 'photo'; args = text; }\nelse if (text.startsWith('/')) {\n  const [c, ...rest] = text.split(/\\s+/);\n  command = c.slice(1).split('@')[0].toLowerCase();\n  args = rest.join(' ').trim();\n}\nelse if (/^\\d{8,14}$/.test(text)) { command = 'scan'; args = text; }\nconst alias = { profil: 'profile', setup: 'profile', me: 'profile', cuisine: 'cook', fridge: 'cook', frigo: 'cook', barcode: 'scan', muscles: 'muscle', exercise: 'muscle', exercises: 'muscle' };\ncommand = alias[command] || command;\nconst known = ['start', 'help', 'profile', 'link', 'today', 'workout', 'muscle', 'eat', 'cook', 'scan', 'photo', 'done', 'log', 'report', 'stop', 'chat'];\nif (!known.includes(command)) command = 'help';\nconst is_start = command === 'start';\nif (is_start) command = 'help';\nreturn [{ json: { chat_id, first_name, text, command, args, is_start, photo_file_id: photo, lang_hint,\n  lat: m.location?.latitude ?? null, lon: m.location?.longitude ?? null } }];\n"
       },
       "id": "tg-003",
       "name": "Parse Command",
@@ -87,14 +87,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const cmd = $('Parse Command').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id);\nconst sub = rows.find(r => String(r.chat_id) === cmd.chat_id) || null;\nconst linked = !!(sub && sub.email && sub.active !== 'no');\nconst needsAccount = ['today', 'workout', 'done', 'log', 'report'];\nconst route = (!linked && needsAccount.includes(cmd.command)) ? 'notlinked' : cmd.command;\nreturn [{ json: { ...cmd, linked, sub: sub || {}, route } }];"
+        "jsCode": "// Every Telegram user is a member: no website account needed.\n// A GymBuddy API user is created from the Telegram profile (or recreated if the API database was reset),\n// so the chatbot, workouts, restaurants, photo scanner and fridge chef are personalised for everybody.\nconst API = ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app').replace(/\\/+$/, '');\nconst helpers = this.helpers;\nconst cmd = $('Parse Command').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id);\nconst row = rows.find(r => String(r.chat_id) === cmd.chat_id) || null;\nconst isNew = !row;\n\nlet profile = {};\ntry { profile = JSON.parse(row?.profile_json || '{}') || {}; } catch (e) { profile = {}; }\nif (!profile.language) profile.language = row?.language || cmd.lang_hint;\n\n// ---- /profile 22 m 175 72 muscle gym 3 halal allergy peanuts injury knee ----\nfunction parseProfile(raw) {\n  const p = {}, unknown = [];\n  const s = ' ' + String(raw).toLowerCase().replace(/,/g, ' ') + ' ';\n  const take = (re) => { const m = s.match(re); return m ? m : null; };\n  let m;\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(cm)\\b/))) p.height_cm = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(kg|kilos?)\\b/))) p.weight_kg = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{1,2})\\s*(ans|years?|yo|y)\\b/))) p.age = Number(m[1]);\n  if ((m = take(/\\b([1-7])\\s*(d|days?|jours?|j|x|x\\/week|\\/week|\\/sem|sessions?)\\b/))) p.days_per_week = Number(m[1]);\n  const bare = (s.match(/(?<![\\d.,])\\d{1,3}(?:[.,]\\d)?(?![\\d.,]*\\s*(cm|kg|kilos?|ans|years?|yo|y|d|days?|jours?|j|x|sessions?)\\b)/g) || []).map(x => Number(x.replace(',', '.')));\n  for (const n of bare) {\n    if (p.age === undefined && n >= 14 && n <= 90 && !(n >= 120)) { p.age = n; continue; }\n    if (p.height_cm === undefined && n >= 120 && n <= 230) { p.height_cm = n; continue; }\n    if (p.weight_kg === undefined && n >= 30 && n <= 250) { p.weight_kg = n; continue; }\n    if (p.days_per_week === undefined && n >= 1 && n <= 7) { p.days_per_week = n; continue; }\n  }\n  if (/\\b(f|female|femme|woman|girl|fille)\\b/.test(s)) p.sex = 'female'; else if (/\\b(m|male|homme|man|boy|garcon|garçon)\\b/.test(s)) p.sex = 'male';\n  if (/\\b(lose|cut|fat|weight loss|perte|perdre|maigrir|seche|sèche)\\b/.test(s)) p.goal = 'lose_fat';\n  else if (/\\b(recomp|recomposition)\\b/.test(s)) p.goal = 'recomp';\n  else if (/\\b(maintain|maintien|maintenir)\\b/.test(s)) p.goal = 'maintain';\n  else if (/\\b(muscle|bulk|mass|masse|gain|prise)\\b/.test(s)) p.goal = 'build_muscle';\n  if (/\\b(bodyweight|no equipment|sans materiel|sans matériel|poids du corps|calisthenics)\\b/.test(s)) p.equipment = 'bodyweight';\n  else if (/\\b(dumbbells?|halteres?|haltères?|home|maison)\\b/.test(s)) p.equipment = 'dumbbells';\n  else if (/\\b(gym|salle)\\b/.test(s)) p.equipment = 'gym';\n  if (/\\b(vegan|végan)\\b/.test(s)) p.diet = 'vegan'; else if (/\\b(vegetarian|végétarien|vegetarien)\\b/.test(s)) p.diet = 'vegetarian'; else if (/\\bhalal\\b/.test(s)) p.diet = 'halal';\n  if (/\\b(advanced|avancé|avance)\\b/.test(s)) p.experience = 'advanced'; else if (/\\b(intermediate|intermédiaire|intermediaire)\\b/.test(s)) p.experience = 'intermediate'; else if (/\\b(beginner|débutant|debutant)\\b/.test(s)) p.experience = 'beginner';\n  if (/\\b(sedentary|sédentaire|sedentaire)\\b/.test(s)) p.activity = 'sedentary'; else if (/\\b(very active|très actif|tres actif)\\b/.test(s)) p.activity = 'very_active';\n  if ((m = s.match(/\\b(?:allerg(?:y|ies|ie|ique)?|allergic to)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:injur|bless|$)|\\s{2}|$)/))) p.allergies = m[1].trim().split(/\\s+(?:and|et)\\s+|\\s+/).filter(w => w.length > 2);\n  if ((m = s.match(/\\b(?:injur(?:y|ies|ed)?|blessures?|bless[ée]?)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:allerg|$)|\\s{2}|$)/))) p.injuries = m[1].trim().split(/\\s+(?:and|et)\\s+/).map(w => w.trim()).filter(Boolean);\n  if (/\\b(fr|français|francais)\\b/.test(s)) p.language = 'fr'; else if (/\\b(en|english|anglais)\\b/.test(s)) p.language = 'en';\n  return { p, unknown };\n}\n\nlet profileUpdated = false;\nif (cmd.command === 'profile' && cmd.args) {\n  const r = parseProfile(cmd.args);\n  if (Object.keys(r.p).length) { Object.assign(profile, r.p); profileUpdated = true; }\n}\n\nconst KEYS = ['age', 'sex', 'height_cm', 'weight_kg', 'activity', 'goal', 'experience', 'days_per_week', 'equipment', 'diet', 'allergies', 'injuries', 'language'];\nconst clean = {}; for (const k of KEYS) if (profile[k] !== undefined && profile[k] !== '') clean[k] = profile[k];\n\nasync function api(method, path, body) {\n  try {\n    return await helpers.httpRequest({ method, url: API + path, body, json: true, timeout: 20000 });\n  } catch (e) { return null; }\n}\nlet userId = row?.user_id || '';\nlet user = null;\nif (userId && !profileUpdated) user = await api('GET', `/api/users/${encodeURIComponent(userId)}`);\nif (!user) {\n  user = await api('POST', '/api/users', { name: String(row?.name || cmd.first_name).slice(0, 80), profile: clean });\n  if (user?.user_id) userId = user.user_id;\n}\nconst t = user?.targets || {};\nconst p = user?.profile || clean;\nconst sub = {\n  chat_id: cmd.chat_id, email: row?.email || '', user_id: userId, name: row?.name || cmd.first_name,\n  calories_target: t.calories ?? row?.calories_target ?? '', protein_g: t.protein_g ?? row?.protein_g ?? '',\n  carbs_g: t.carbs_g ?? row?.carbs_g ?? '', fat_g: t.fat_g ?? row?.fat_g ?? '', water_l: t.water_l ?? row?.water_l ?? '',\n  language: p.language || profile.language || 'en',\n  streak: row?.streak || 0, best_streak: row?.best_streak || 0, total_workouts: row?.total_workouts || 0, last_done: row?.last_done || '',\n  active: (isNew || cmd.is_start || profileUpdated) ? 'yes' : (row?.active || 'yes'),\n  joined_at: row?.joined_at || $now.toISO(), linked_at: row?.linked_at || '',\n  profile_json: JSON.stringify(Object.fromEntries(KEYS.filter(k => p[k] !== undefined).map(k => [k, p[k]]))),\n};\nreturn [{ json: { ...cmd, linked: !!sub.email, is_new: isNew, has_profile: !!(row?.profile_json) || profileUpdated,\n  profile_updated: profileUpdated, api_ok: !!user, targets: t, sub, route: cmd.command } }];\n"
       },
       "id": "tg-005",
       "name": "Attach Subscriber & Route",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        660,
+        1060,
         400
       ]
     },
@@ -123,6 +123,28 @@
               },
               "renameOutput": true,
               "outputKey": "help"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "profile",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "profile"
             },
             {
               "conditions": {
@@ -200,6 +222,28 @@
                 "conditions": [
                   {
                     "leftValue": "={{ $json.route }}",
+                    "rightValue": "muscle",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "muscle"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
                     "rightValue": "eat",
                     "operator": {
                       "type": "string",
@@ -211,6 +255,72 @@
               },
               "renameOutput": true,
               "outputKey": "eat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "cook",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cook"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "scan",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "scan"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "photo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "photo"
             },
             {
               "conditions": {
@@ -299,28 +409,6 @@
               },
               "renameOutput": true,
               "outputKey": "stop"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.route }}",
-                    "rightValue": "notlinked",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "notlinked"
             }
           ]
         },
@@ -334,8 +422,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        880,
-        380
+        1040,
+        400
       ]
     },
     {
@@ -353,7 +441,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2900,
+        3300,
         400
       ],
       "credentials": {
@@ -366,14 +454,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $json;\nconst hi = c.linked ? `Welcome back, <b>${esc(c.sub.name || c.first_name)}</b>! 💪` : `Hey <b>${esc(c.first_name)}</b>, I'm your <b>GymBuddy AI</b> coach on Telegram 🏋️`;\nconst text = [hi, '',\n  c.linked ? null : '1️⃣ First connect your app account: <code>/link your@email.com</code>\\n(the email you use on GymBuddy, with daily coaching turned on in your profile)\\n',\n  '<b>What I can do</b>',\n  '/today: your workout, calories, protein and water for today',\n  '/workout: the exercise list for today (or <code>/workout legs</code>)',\n  '/eat: healthy dishes in restaurants near you (send your 📍 location or <code>/eat Rabat</code>)',\n  '/done: log a finished workout and grow your 🔥 streak',\n  '/log 2 eggs and a banana: I estimate the macros and log the meal',\n  '/report: today\\'s calories and protein with progress bars',\n  '/stop: pause the daily messages', '',\n  'Or just ask me anything: \"what can I eat after leg day?\"', '',\n  `Every morning at 07:30 you get your plan, at 20:30 a reminder if you haven't trained, and on Sunday a weekly recap.`,\n  `📱 App: ${'https://gymbuddy-ai-phi.vercel.app'}`].filter(l => l !== null).join('\\n');\nreturn [{ json: { chat_id: c.chat_id, text } }];"
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $json; const s = c.sub;\nconst fr = s.language === 'fr';\nconst hi = c.is_new || !c.has_profile\n  ? `Hey <b>${esc(c.first_name)}</b>, I'm your <b>GymBuddy AI</b> coach on Telegram 🏋️ No account needed, everything works right here.`\n  : `Welcome back, <b>${esc(s.name || c.first_name)}</b>! 💪`;\nconst setup = !c.has_profile ? `\\n1️⃣ <b>Tell me about you</b> (one message, any order):\\n<code>/profile 22 male 175cm 72kg muscle gym 3 days</code>\\nAdd if needed: <code>halal</code>, <code>allergy peanuts</code>, <code>injury knee</code>, <code>fr</code>\\n` : `\\n🎯 Your targets: 🔥 ${s.calories_target} kcal · 🥩 ${s.protein_g} g protein · 💧 ${s.water_l} L\\n`;\nconst text = [hi, setup,\n  '<b>What I can do</b>',\n  '/profile: your profile and daily targets (change it any time)',\n  '/today: your session, calories, protein and water for today',\n  '/workout: today\\'s exercise list with demos (or <code>/workout legs</code>)',\n  '/muscle chest: best exercises for one muscle',\n  '/cook chicken, rice, broccoli: AI chef recipe + a picture of the dish',\n  '📷 Send a <b>photo</b> of a gym machine, your plate or a barcode',\n  '/scan 3017620422003: nutrition score of a product (or just send the number)',\n  '/eat: healthy dishes near you (send your 📍 location or <code>/eat Rabat</code>)',\n  '/done: log a workout and grow your 🔥 streak',\n  '/log 2 eggs and a banana: I estimate the macros and log the meal',\n  '/report: today\\'s calories and protein with progress bars',\n  '/stop: pause the daily messages (/start to resume)', '',\n  'Or just ask me anything: \"what can I eat after leg day?\"', '',\n  'Every morning at 07:30 you get your plan, at 20:30 a reminder if you haven\\'t trained, and on Sunday a weekly recap.',\n  `📱 Same coach on the web: https://gymbuddy-ai-phi.vercel.app (optional: <code>/link your@email.com</code> to use your app profile)`].join('\\n');\nreturn [{ json: { chat_id: c.chat_id, text } }];\n"
       },
       "id": "tg-008",
       "name": "Help Text",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1140,
+        1540,
         -1000
       ]
     },
@@ -399,7 +487,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1140,
+        1540,
         -740
       ],
       "onError": "continueRegularOutput",
@@ -407,14 +495,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst email = (c.args || '').toLowerCase().trim();\nconst d = $input.first().json;\nif (!email.includes('@')) return [{ json: { ok: false, chat_id: c.chat_id, text: 'Send it like this: <code>/link your@email.com</code>' } }];\nif (!Array.isArray(d.users)) return [{ json: { ok: false, chat_id: c.chat_id, text: '⚠️ I could not reach the GymBuddy app right now. Try again in a minute.' } }];\nconst u = d.users.find(x => (x.email || '').toLowerCase() === email);\nif (!u) return [{ json: { ok: false, chat_id: c.chat_id, text: `I can't find <b>${esc(email)}</b> among members with daily coaching turned on.\\nOpen ${'https://gymbuddy-ai-phi.vercel.app'} → Profile → turn on <b>daily coaching</b>, then send /link again.` } }];\nconst s = c.sub || {};\nconst rowData = { chat_id: c.chat_id, email, user_id: u.user_id, name: u.name || c.first_name,\n  calories_target: u.calories, protein_g: u.protein_g, water_l: u.water_l, language: u.language || 'en',\n  streak: s.streak || 0, best_streak: s.best_streak || 0, total_workouts: s.total_workouts || 0,\n  last_done: s.last_done || '', active: 'yes', linked_at: $now.toISO() };\nconst text = `✅ Linked to <b>${esc(rowData.name)}</b>'s GymBuddy account.\\n\\n🎯 Goal: ${esc(u.goal)}\\n🔥 ${u.calories} kcal · 🥩 ${u.protein_g} g protein · 💧 ${u.water_l} L water\\n🏋️ Today: <b>${esc(u.today_workout)}</b>\\n\\nTry /today or /workout.`;\nreturn [{ json: { ok: true, chat_id: c.chat_id, row: rowData, text } }];"
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst email = (c.args || '').toLowerCase().trim();\nconst d = $input.first().json;\nif (!email.includes('@')) return [{ json: { ok: false, chat_id: c.chat_id, text: 'Send it like this: <code>/link your@email.com</code>' } }];\nif (!Array.isArray(d.users)) return [{ json: { ok: false, chat_id: c.chat_id, text: '⚠️ I could not reach the GymBuddy app right now. Try again in a minute.' } }];\nconst u = d.users.find(x => (x.email || '').toLowerCase() === email);\nif (!u) return [{ json: { ok: false, chat_id: c.chat_id, text: `I can't find <b>${esc(email)}</b> among app members with daily coaching turned on.\\nNo problem: linking is optional, the bot already works for you. Set your profile here with <code>/profile</code>.` } }];\nconst s = c.sub || {};\nconst rowData = { chat_id: c.chat_id, email, user_id: u.user_id, name: u.name || c.first_name,\n  calories_target: u.calories, protein_g: u.protein_g, water_l: u.water_l, language: u.language || 'en',\n  streak: s.streak || 0, best_streak: s.best_streak || 0, total_workouts: s.total_workouts || 0,\n  last_done: s.last_done || '', active: 'yes', linked_at: $now.toISO() };\nconst text = `✅ Linked to <b>${esc(rowData.name)}</b>'s GymBuddy account.\\n\\n🎯 Goal: ${esc(u.goal)}\\n🔥 ${u.calories} kcal · 🥩 ${u.protein_g} g protein · 💧 ${u.water_l} L water\\n🏋️ Today: <b>${esc(u.today_workout)}</b>\\n\\nTry /today or /workout.`;\nreturn [{ json: { ok: true, chat_id: c.chat_id, row: rowData, text } }];"
       },
       "id": "tg-010",
       "name": "Verify Email",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         -740
       ]
     },
@@ -447,7 +535,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1580,
+        1980,
         -740
       ]
     },
@@ -621,7 +709,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1800,
+        2200,
         -800
       ],
       "onError": "continueRegularOutput",
@@ -641,7 +729,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2020,
+        2420,
         -800
       ]
     },
@@ -667,7 +755,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1140,
+        1540,
         -480
       ],
       "onError": "continueRegularOutput",
@@ -675,14 +763,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase());\nconst member = u || { name: s.name, today_workout: 'Your planned session', calories: s.calories_target,\n  protein_g: s.protein_g, water_l: s.water_l, language: s.language, goal: '', diet: '', allergies: [], injuries: [], equipment: '' };\nreturn [{ json: { chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: u?.user_id || s.user_id, member } }];"
+        "jsCode": "const GOALS = { lose_fat: 'Lose fat', build_muscle: 'Build muscle', recomp: 'Body recomposition', maintain: 'Maintain' };\nconst EQUIP = { gym: 'Full gym', dumbbells: 'Home dumbbells', bodyweight: 'Bodyweight only' };\nconst PLAN = { 1: ['Full body'], 2: ['Full body A', 'Full body B'], 3: ['Full body A', 'Full body B', 'Full body A'], 4: ['Upper', 'Lower', 'Upper', 'Lower'],\n  5: ['Push', 'Pull', 'Legs', 'Upper', 'Lower'], 6: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'], 7: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs', 'Active recovery'] };\nconst DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };\nconst profileOf = s => { try { return JSON.parse(s?.profile_json || '{}') || {}; } catch (e) { return {}; } };\nconst todayWorkout = p => { const d = Math.min(7, Math.max(1, Number(p.days_per_week || 3))); const wd = Number($now.toFormat('c')) - 1;\n  const i = DAYS[d].indexOf(wd); return i >= 0 ? PLAN[d][i] : 'Rest day (walk 8,000+ steps, stretch)'; };\nconst memberOf = (s, u) => { const p = profileOf(s); u = u || {};\n  return { name: u.name || s.name, goal: u.goal || GOALS[p.goal || 'build_muscle'], today_workout: u.today_workout || todayWorkout(p),\n    equipment: u.equipment || EQUIP[p.equipment || 'gym'], calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g,\n    water_l: u.water_l || s.water_l, diet: u.diet || p.diet || 'none', allergies: u.allergies || p.allergies || [], injuries: u.injuries || p.injuries || [],\n    language: u.language || p.language || s.language || 'en' }; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = s.email ? (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) : null;\nreturn [{ json: { chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: s.user_id, member: memberOf(s, u) } }];\n"
       },
       "id": "tg-015",
       "name": "Pick Member (today)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         -480
       ]
     },
@@ -715,7 +803,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1580,
+        1980,
         -480
       ],
       "onError": "continueRegularOutput",
@@ -730,7 +818,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         -480
       ]
     },
@@ -756,7 +844,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1140,
+        1540,
         -220
       ],
       "onError": "continueRegularOutput",
@@ -764,14 +852,14 @@
     },
     {
       "parameters": {
-        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase());\nconst member = u || { name: s.name, today_workout: 'Your planned session', calories: s.calories_target,\n  protein_g: s.protein_g, water_l: s.water_l, language: s.language, goal: '', diet: '', allergies: [], injuries: [], equipment: '' };\nconst map = { push: 'push', pull: 'pull', legs: 'legs', leg: 'legs', upper: 'upper', lower: 'lower', full: 'full_body', 'full body': 'full_body', arms: 'bro_arms', chest: 'bro_chest', back: 'bro_back', shoulders: 'bro_shoulders', glutes: 'glutes_abs', abs: 'glutes_abs', core: 'glutes_abs' };\nconst ask = String(c.args || '').toLowerCase().trim();\nconst planned = String(member.today_workout || '').toLowerCase();\nconst isRest = !ask && planned.startsWith('rest');\nconst key = Object.keys(map).find(k => ask.startsWith(k)) || Object.keys(map).find(k => planned.startsWith(k));\nconst split = isRest ? 'glutes_abs' : (map[key] || 'full_body');\nreturn [{ json: { split, isRest, chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: u?.user_id || s.user_id, member } }];"
+        "jsCode": "const GOALS = { lose_fat: 'Lose fat', build_muscle: 'Build muscle', recomp: 'Body recomposition', maintain: 'Maintain' };\nconst EQUIP = { gym: 'Full gym', dumbbells: 'Home dumbbells', bodyweight: 'Bodyweight only' };\nconst PLAN = { 1: ['Full body'], 2: ['Full body A', 'Full body B'], 3: ['Full body A', 'Full body B', 'Full body A'], 4: ['Upper', 'Lower', 'Upper', 'Lower'],\n  5: ['Push', 'Pull', 'Legs', 'Upper', 'Lower'], 6: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'], 7: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs', 'Active recovery'] };\nconst DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };\nconst profileOf = s => { try { return JSON.parse(s?.profile_json || '{}') || {}; } catch (e) { return {}; } };\nconst todayWorkout = p => { const d = Math.min(7, Math.max(1, Number(p.days_per_week || 3))); const wd = Number($now.toFormat('c')) - 1;\n  const i = DAYS[d].indexOf(wd); return i >= 0 ? PLAN[d][i] : 'Rest day (walk 8,000+ steps, stretch)'; };\nconst memberOf = (s, u) => { const p = profileOf(s); u = u || {};\n  return { name: u.name || s.name, goal: u.goal || GOALS[p.goal || 'build_muscle'], today_workout: u.today_workout || todayWorkout(p),\n    equipment: u.equipment || EQUIP[p.equipment || 'gym'], calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g,\n    water_l: u.water_l || s.water_l, diet: u.diet || p.diet || 'none', allergies: u.allergies || p.allergies || [], injuries: u.injuries || p.injuries || [],\n    language: u.language || p.language || s.language || 'en' }; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst d = $input.first().json;\nconst s = c.sub;\nconst u = s.email ? (d.users || []).find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) : null;\nconst member = memberOf(s, u);\nconst map = { push: 'push', pull: 'pull', legs: 'legs', leg: 'legs', jambes: 'legs', upper: 'upper', haut: 'upper', lower: 'lower', bas: 'lower', full: 'full_body', 'full body': 'full_body', arms: 'bro_arms', bras: 'bro_arms', chest: 'bro_chest', pecs: 'bro_chest', back: 'bro_back', dos: 'bro_back', shoulders: 'bro_shoulders', epaules: 'bro_shoulders', glutes: 'glutes_abs', fessiers: 'glutes_abs', abs: 'glutes_abs', core: 'glutes_abs' };\nconst ask = String(c.args || '').toLowerCase().trim();\nconst planned = String(member.today_workout || '').toLowerCase();\nconst isRest = !ask && planned.startsWith('rest');\nconst key = Object.keys(map).find(k => ask.startsWith(k)) || Object.keys(map).find(k => planned.startsWith(k));\nconst split = isRest ? 'glutes_abs' : (map[key] || 'full_body');\nreturn [{ json: { split, isRest, chat_id: c.chat_id, args: c.args, streak: Number(s.streak || 0), user_id: s.user_id, member } }];\n"
       },
       "id": "tg-019",
       "name": "Pick Split",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         -220
       ]
     },
@@ -810,7 +898,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1580,
+        1980,
         -220
       ],
       "onError": "continueRegularOutput",
@@ -825,7 +913,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         -220
       ]
     },
@@ -838,7 +926,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1140,
+        1540,
         40
       ]
     },
@@ -871,7 +959,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         40
       ]
     },
@@ -891,7 +979,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1580,
+        1980,
         -20
       ],
       "onError": "continueRegularOutput",
@@ -906,7 +994,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         -20
       ]
     },
@@ -919,7 +1007,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1140,
+        1540,
         300
       ]
     },
@@ -1003,7 +1091,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1360,
+        1760,
         300
       ],
       "onError": "continueRegularOutput",
@@ -1091,7 +1179,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1580,
+        1980,
         300
       ],
       "onError": "continueRegularOutput",
@@ -1111,7 +1199,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         300
       ]
     },
@@ -1124,7 +1212,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1140,
+        1540,
         560
       ]
     },
@@ -1157,7 +1245,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         560
       ]
     },
@@ -1190,7 +1278,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1580,
+        1980,
         500
       ],
       "onError": "continueRegularOutput",
@@ -1205,7 +1293,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         500
       ]
     },
@@ -1316,7 +1404,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        2020,
+        2420,
         500
       ],
       "onError": "continueRegularOutput",
@@ -1336,7 +1424,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2240,
+        2640,
         500
       ]
     },
@@ -1359,7 +1447,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1140,
+        1540,
         820
       ],
       "alwaysOutputData": true,
@@ -1381,7 +1469,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         820
       ]
     },
@@ -1435,7 +1523,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1140,
+        1540,
         1080
       ],
       "onError": "continueRegularOutput",
@@ -1448,28 +1536,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nreturn [{ json: { chat_id: c.chat_id, text: '⏸️ Daily messages paused. Send <code>/link your@email.com</code> any time to turn them back on.' } }];"
+        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nreturn [{ json: { chat_id: c.chat_id, text: '⏸️ Daily messages paused. Send /start any time to turn them back on.' } }];\n"
       },
       "id": "tg-039",
       "name": "Stop Reply",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         1080
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const c = $json;\nreturn [{ json: { chat_id: c.chat_id, text: '🔗 First connect your GymBuddy account so I know your plan:\\n<code>/link your@email.com</code>\\n\\nNo account yet? Create one free at https://gymbuddy-ai-phi.vercel.app' } }];"
-      },
-      "id": "tg-040",
-      "name": "Ask To Link",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1140,
-        1340
       ]
     },
     {
@@ -1488,7 +1563,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1140,
+        1540,
         1600
       ],
       "onError": "continueRegularOutput",
@@ -1523,7 +1598,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1360,
+        1760,
         1600
       ]
     },
@@ -1536,7 +1611,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1580,
+        1980,
         1540
       ]
     },
@@ -1559,7 +1634,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a friendly evidence-based gym and nutrition coach on Telegram. Answer in max 120 words, in the user's language, with practical steps. For pain, injury or medical questions, advise seeing a professional. Never recommend drugs or extreme diets.\" }, { role: 'user', content: $('Attach Subscriber & Route').first().json.text } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a friendly evidence-based gym and nutrition coach on Telegram. Answer in max 120 words, in the user's language, with practical steps. For pain, injury or medical questions, advise seeing a professional. Never recommend drugs or extreme diets.\" }, { role: 'user', content: 'My profile: ' + $('Attach Subscriber & Route').first().json.sub.profile_json + '\\nMy targets: ' + $('Attach Subscriber & Route').first().json.sub.calories_target + ' kcal, ' + $('Attach Subscriber & Route').first().json.sub.protein_g + ' g protein.\\nQuestion: ' + $('Attach Subscriber & Route').first().json.text } ] }) }}",
         "options": {
           "timeout": 45000
         }
@@ -1569,7 +1644,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1580,
+        1980,
         1680
       ],
       "onError": "continueRegularOutput",
@@ -1577,20 +1652,20 @@
     },
     {
       "parameters": {
-        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst t = aiText($input.first().json) || 'I am a bit overloaded right now 😅 Try again in a minute, or use /today and /workout.';\nreturn [{ json: { chat_id: c.chat_id, text: tg(t) + (c.linked ? '' : '\\n\\n🔗 Link your account for personal answers: <code>/link your@email.com</code>') } }];"
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json;\nconst t = aiText($input.first().json) || 'I am a bit overloaded right now 😅 Try again in a minute, or use /today and /workout.';\nreturn [{ json: { chat_id: c.chat_id, text: tg(t) + (c.has_profile ? '' : '\\n\\n🎯 For answers that fit your body and goal: <code>/profile 22 male 175cm 72kg muscle gym 3 days</code>') } }];\n"
       },
       "id": "tg-045",
       "name": "Format Backup Answer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1800,
+        2200,
         1680
       ]
     },
     {
       "parameters": {
-        "content": "### 💬 Bot commands\nOne Switch routes every Telegram message. Commands that need the member's plan are sent to *Ask To Link* until the member runs `/link email` (checked against the app's opted-in members). Free text goes to the app's own RAG chatbot (`/api/chat`); if the app can't answer, the AI model answers directly.",
+        "content": "### 💬 Bot commands\nEvery message first passes *Attach Subscriber & Route*: new Telegram users are registered automatically, and a GymBuddy API user is created from their `/profile` (recreated if the API database was reset). *Save Member* stores them in `TG_Subscribers`. One Switch then routes the command. `/link email` is optional (to reuse an app profile). Free text goes to the app's RAG chatbot (`/api/chat`); if the app can't answer, the AI model answers directly.",
         "height": 160,
         "width": 640,
         "color": 4
@@ -1702,7 +1777,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const subs = $('Read Subscribers (AM)').all().map(i => i.json).filter(s => s && s.chat_id && s.email && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) || {};\n  return { json: { chat_id: String(s.chat_id), name: u.name || s.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''),\n    member: { name: u.name || s.name, goal: u.goal, today_workout: u.today_workout || 'Your planned session', equipment: u.equipment,\n      calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g, water_l: u.water_l || s.water_l,\n      diet: u.diet, allergies: u.allergies, injuries: u.injuries, language: u.language || s.language || 'en' } } };\n});"
+        "jsCode": "const GOALS = { lose_fat: 'Lose fat', build_muscle: 'Build muscle', recomp: 'Body recomposition', maintain: 'Maintain' };\nconst EQUIP = { gym: 'Full gym', dumbbells: 'Home dumbbells', bodyweight: 'Bodyweight only' };\nconst PLAN = { 1: ['Full body'], 2: ['Full body A', 'Full body B'], 3: ['Full body A', 'Full body B', 'Full body A'], 4: ['Upper', 'Lower', 'Upper', 'Lower'],\n  5: ['Push', 'Pull', 'Legs', 'Upper', 'Lower'], 6: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'], 7: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs', 'Active recovery'] };\nconst DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };\nconst profileOf = s => { try { return JSON.parse(s?.profile_json || '{}') || {}; } catch (e) { return {}; } };\nconst todayWorkout = p => { const d = Math.min(7, Math.max(1, Number(p.days_per_week || 3))); const wd = Number($now.toFormat('c')) - 1;\n  const i = DAYS[d].indexOf(wd); return i >= 0 ? PLAN[d][i] : 'Rest day (walk 8,000+ steps, stretch)'; };\nconst memberOf = (s, u) => { const p = profileOf(s); u = u || {};\n  return { name: u.name || s.name, goal: u.goal || GOALS[p.goal || 'build_muscle'], today_workout: u.today_workout || todayWorkout(p),\n    equipment: u.equipment || EQUIP[p.equipment || 'gym'], calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g,\n    water_l: u.water_l || s.water_l, diet: u.diet || p.diet || 'none', allergies: u.allergies || p.allergies || [], injuries: u.injuries || p.injuries || [],\n    language: u.language || p.language || s.language || 'en' }; };\nconst subs = $('Read Subscribers (AM)').all().map(i => i.json).filter(s => s && s.chat_id && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = s.email ? users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) : null;\n  const member = memberOf(s, u);\n  return { json: { chat_id: String(s.chat_id), name: member.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''), member } };\n});\n"
       },
       "id": "tg-051",
       "name": "Join Members (AM)",
@@ -1870,7 +1945,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const subs = $('Read Subscribers (PM)').all().map(i => i.json).filter(s => s && s.chat_id && s.email && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) || {};\n  return { json: { chat_id: String(s.chat_id), name: u.name || s.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''),\n    member: { name: u.name || s.name, goal: u.goal, today_workout: u.today_workout || 'Your planned session', equipment: u.equipment,\n      calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g, water_l: u.water_l || s.water_l,\n      diet: u.diet, allergies: u.allergies, injuries: u.injuries, language: u.language || s.language || 'en' } } };\n});"
+        "jsCode": "const GOALS = { lose_fat: 'Lose fat', build_muscle: 'Build muscle', recomp: 'Body recomposition', maintain: 'Maintain' };\nconst EQUIP = { gym: 'Full gym', dumbbells: 'Home dumbbells', bodyweight: 'Bodyweight only' };\nconst PLAN = { 1: ['Full body'], 2: ['Full body A', 'Full body B'], 3: ['Full body A', 'Full body B', 'Full body A'], 4: ['Upper', 'Lower', 'Upper', 'Lower'],\n  5: ['Push', 'Pull', 'Legs', 'Upper', 'Lower'], 6: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'], 7: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs', 'Active recovery'] };\nconst DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };\nconst profileOf = s => { try { return JSON.parse(s?.profile_json || '{}') || {}; } catch (e) { return {}; } };\nconst todayWorkout = p => { const d = Math.min(7, Math.max(1, Number(p.days_per_week || 3))); const wd = Number($now.toFormat('c')) - 1;\n  const i = DAYS[d].indexOf(wd); return i >= 0 ? PLAN[d][i] : 'Rest day (walk 8,000+ steps, stretch)'; };\nconst memberOf = (s, u) => { const p = profileOf(s); u = u || {};\n  return { name: u.name || s.name, goal: u.goal || GOALS[p.goal || 'build_muscle'], today_workout: u.today_workout || todayWorkout(p),\n    equipment: u.equipment || EQUIP[p.equipment || 'gym'], calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g,\n    water_l: u.water_l || s.water_l, diet: u.diet || p.diet || 'none', allergies: u.allergies || p.allergies || [], injuries: u.injuries || p.injuries || [],\n    language: u.language || p.language || s.language || 'en' }; };\nconst subs = $('Read Subscribers (PM)').all().map(i => i.json).filter(s => s && s.chat_id && s.active !== 'no');\nconst users = $input.first().json.users || [];\nreturn subs.map(s => {\n  const u = s.email ? users.find(x => (x.email || '').toLowerCase() === String(s.email).toLowerCase()) : null;\n  const member = memberOf(s, u);\n  return { json: { chat_id: String(s.chat_id), name: member.name, streak: Number(s.streak || 0), last_done: String(s.last_done || ''), member } };\n});\n"
       },
       "id": "tg-058",
       "name": "Join Members (PM)",
@@ -2122,6 +2197,564 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TG_Subscribers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.sub.chat_id }}",
+            "user_id": "={{ $json.sub.user_id }}",
+            "name": "={{ $json.sub.name }}",
+            "calories_target": "={{ $json.sub.calories_target }}",
+            "protein_g": "={{ $json.sub.protein_g }}",
+            "carbs_g": "={{ $json.sub.carbs_g }}",
+            "fat_g": "={{ $json.sub.fat_g }}",
+            "water_l": "={{ $json.sub.water_l }}",
+            "language": "={{ $json.sub.language }}",
+            "active": "={{ $json.sub.active }}",
+            "joined_at": "={{ $json.sub.joined_at }}",
+            "profile_json": "={{ $json.sub.profile_json }}"
+          },
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "calories_target",
+              "displayName": "calories_target",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "protein_g",
+              "displayName": "protein_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "carbs_g",
+              "displayName": "carbs_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fat_g",
+              "displayName": "fat_g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "water_l",
+              "displayName": "water_l",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "active",
+              "displayName": "active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "joined_at",
+              "displayName": "joined_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "profile_json",
+              "displayName": "profile_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "tg-101",
+      "name": "Save Member",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        640,
+        400
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "GymBuddy Google Sheets"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "tg-102",
+      "name": "Member Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        400
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: $('Attach Subscriber & Route').first().json }];"
+      }
+    },
+    {
+      "id": "tg-110",
+      "name": "Profile Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        2200
+      ],
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst GOALS = { lose_fat: 'Lose fat', build_muscle: 'Build muscle', recomp: 'Body recomposition', maintain: 'Maintain' };\nconst EQUIP = { gym: 'Full gym', dumbbells: 'Home dumbbells', bodyweight: 'Bodyweight only' };\nconst PLAN = { 1: ['Full body'], 2: ['Full body A', 'Full body B'], 3: ['Full body A', 'Full body B', 'Full body A'], 4: ['Upper', 'Lower', 'Upper', 'Lower'],\n  5: ['Push', 'Pull', 'Legs', 'Upper', 'Lower'], 6: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs'], 7: ['Push', 'Pull', 'Legs', 'Push', 'Pull', 'Legs', 'Active recovery'] };\nconst DAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };\nconst profileOf = s => { try { return JSON.parse(s?.profile_json || '{}') || {}; } catch (e) { return {}; } };\nconst todayWorkout = p => { const d = Math.min(7, Math.max(1, Number(p.days_per_week || 3))); const wd = Number($now.toFormat('c')) - 1;\n  const i = DAYS[d].indexOf(wd); return i >= 0 ? PLAN[d][i] : 'Rest day (walk 8,000+ steps, stretch)'; };\nconst memberOf = (s, u) => { const p = profileOf(s); u = u || {};\n  return { name: u.name || s.name, goal: u.goal || GOALS[p.goal || 'build_muscle'], today_workout: u.today_workout || todayWorkout(p),\n    equipment: u.equipment || EQUIP[p.equipment || 'gym'], calories: u.calories || s.calories_target, protein_g: u.protein_g || s.protein_g,\n    water_l: u.water_l || s.water_l, diet: u.diet || p.diet || 'none', allergies: u.allergies || p.allergies || [], injuries: u.injuries || p.injuries || [],\n    language: u.language || p.language || s.language || 'en' }; };\nconst c = $json; const s = c.sub; const p = profileOf(s);\nconst GOAL = GOALS[p.goal] || 'Build muscle';\nconst line = `👤 ${p.age ?? '?'} y · ${p.sex || '?'} · ${p.height_cm ?? '?'} cm · ${p.weight_kg ?? '?'} kg\\n🎯 ${GOAL} · ${EQUIP[p.equipment] || 'Full gym'} · ${p.days_per_week ?? 3} days/week · ${p.experience || 'beginner'}\\n🍽️ Diet: ${p.diet || 'none'}${(p.allergies || []).length ? ` · ⚠️ allergies: ${esc(p.allergies.join(', '))}` : ''}${(p.injuries || []).length ? `\\n🩹 Injuries: ${esc(p.injuries.join(', '))}` : ''}`;\nconst targets = c.api_ok ? `\\n\\n<b>Your daily targets</b> (Mifflin-St Jeor formula)\\n🔥 ${s.calories_target} kcal · 🥩 ${s.protein_g} g protein\\n🍚 ${s.carbs_g} g carbs · 🥑 ${s.fat_g} g fat · 💧 ${s.water_l} L water\\n🏋️ Today: <b>${esc(todayWorkout(p))}</b>` : `\\n\\n⚠️ I saved your profile but could not reach the GymBuddy app to compute your targets. Try /profile again in a minute.`;\nconst how = `\\n\\nChange anything in one message, e.g.\\n<code>/profile 24 female 165cm 60kg lose fat dumbbells 4 days halal allergy peanuts injury knee</code>`;\nconst head = c.profile_updated ? '✅ <b>Profile saved!</b>\\n\\n' : (c.args ? \"🤔 I didn't recognise anything in that message.\\n\\n\" : '<b>Your GymBuddy profile</b>\\n\\n');\nreturn [{ json: { chat_id: c.chat_id, text: head + line + targets + how + (c.profile_updated ? '\\n\\nTry /today or /workout 💪' : '') } }];\n"
+      }
+    },
+    {
+      "id": "tg-111",
+      "name": "Muscle Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        2400
+      ],
+      "parameters": {
+        "jsCode": "const c = $json;\nconst MAP = { chest: 'chest', pecs: 'chest', pectoraux: 'chest', poitrine: 'chest', shoulder: 'shoulders', shoulders: 'shoulders', epaules: 'shoulders', 'épaules': 'shoulders', biceps: 'biceps', triceps: 'triceps', forearm: 'forearms', forearms: 'forearms', 'avant-bras': 'forearms', abs: 'abs', abdos: 'abs', obliques: 'obliques', quads: 'quads', quadriceps: 'quads', cuisses: 'quads', adductors: 'adductors', adducteurs: 'adductors', calves: 'calves', mollets: 'calves', traps: 'traps', trapezes: 'traps', 'trapèzes': 'traps', back: 'upper_back', lats: 'upper_back', dos: 'upper_back', 'lower back': 'lower_back', lombaires: 'lower_back', glutes: 'glutes', fessiers: 'glutes', hamstrings: 'hamstrings', ischios: 'hamstrings' };\nconst a = String(c.args || '').toLowerCase().trim();\nconst key = Object.keys(MAP).sort((x, y) => y.length - x.length).find(k => a.includes(k));\nreturn [{ json: { ok: !!key, muscle: key ? MAP[key] : '', chat_id: c.chat_id, user_id: c.sub.user_id,\n  text: 'Which muscle? e.g. <code>/muscle chest</code>\\nChest, shoulders, biceps, triceps, forearms, abs, obliques, quads, adductors, calves, traps, back, lower back, glutes, hamstrings.' } }];\n"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-112",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-112",
+      "name": "Muscle Known?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2400
+      ]
+    },
+    {
+      "id": "tg-113",
+      "name": "Get Muscle Exercises",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        2400
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/muscles/' + $json.muscle + '/exercises?user_id=' + encodeURIComponent($json.user_id || '') }}",
+        "options": {
+          "timeout": 25000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "tg-114",
+      "name": "Format Muscle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        2400
+      ],
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst q = $('Muscle Query').first().json; const r = $input.first().json;\nconst list = (r.exercises || []).slice(0, 6);\nif (!list.length) return [{ json: { chat_id: q.chat_id, text: '⚠️ I could not load exercises from the app right now. Try again in a minute.' } }];\nconst lines = list.map((e, i) => `${i + 1}. <b>${esc(e.name)}</b>${e.sets_reps ? `\\n   ${esc(e.sets_reps)}` : ''}${e.gif_url ? ` · <a href=\"${esc(e.gif_url)}\">demo</a>` : ''}${(e.injury_warning || []).length ? `\\n   ⚠️ careful with: ${esc(e.injury_warning.join(', '))}` : ''}`);\nconst sug = (r.suggestions || []).slice(0, 2).map(s => `• ${esc(s)}`).join('\\n');\nreturn [{ json: { chat_id: q.chat_id, text: `<b>💪 ${esc(r.muscle?.name || q.muscle)}: best exercises for you</b>\\n\\n${lines.join('\\n')}${sug ? `\\n\\n<b>Ask me</b>\\n${sug}` : ''}` } }];\n"
+      }
+    },
+    {
+      "id": "tg-115",
+      "name": "Cook Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        2600
+      ],
+      "parameters": {
+        "jsCode": "const c = $json;\nreturn [{ json: { ok: String(c.args || '').length > 2, chat_id: c.chat_id, user_id: c.sub.user_id, ingredients: c.args,\n  text: 'Tell me what you have at home, e.g. <code>/cook chicken, rice, broccoli, garlic</code>' } }];\n"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-116",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-116",
+      "name": "Has Ingredients?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2600
+      ]
+    },
+    {
+      "id": "tg-117",
+      "name": "AI Fridge Chef",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        2600
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/nutrition/fridge-meals' }}",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ user_id: $json.user_id || null, ingredients: $json.ingredients, currency_code: 'MAD' }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "tg-118",
+      "name": "Format Cook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        2600
+      ],
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst q = $('Cook Input').first().json; const r = $input.first().json;\nconst text = r.reply ? `<b>👨‍🍳 With ${esc(q.ingredients)}</b>\\n\\n${tg(r.reply)}` : '⚠️ The AI chef is busy right now. Try again in a minute.';\nlet binary;\nconst url = String(r.generated_image_url || '');\ntry {\n  if (url.startsWith('data:image')) {\n    const b64 = url.split(',')[1]; const mime = url.slice(5, url.indexOf(';'));\n    binary = { data: await this.helpers.prepareBinaryData(Buffer.from(b64, 'base64'), 'dish.' + (mime.split('/')[1] || 'jpg'), mime) };\n  } else if (url.startsWith('http')) {\n    const buf = await this.helpers.httpRequest({ url, encoding: 'arraybuffer', timeout: 30000 });\n    binary = { data: await this.helpers.prepareBinaryData(Buffer.from(buf), 'dish.jpg', 'image/jpeg') };\n  }\n} catch (e) { binary = undefined; }\nreturn [{ json: { chat_id: q.chat_id, text, has_image: !!binary, caption: '🍽️ Your dish, imagined by GymBuddy AI' }, ...(binary ? { binary } : {}) }];\n"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-119",
+              "leftValue": "={{ $json.has_image }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-119",
+      "name": "Has Dish Image?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        2600
+      ]
+    },
+    {
+      "id": "tg-120",
+      "name": "Send Dish Photo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        2550
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "caption": "={{ $json.caption }}"
+        }
+      }
+    },
+    {
+      "id": "tg-121",
+      "name": "Cook Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        2550
+      ],
+      "parameters": {
+        "jsCode": "const f = $('Format Cook').first().json;\nreturn [{ json: { chat_id: f.chat_id, text: f.text } }];\n"
+      }
+    },
+    {
+      "id": "tg-122",
+      "name": "Barcode Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        2800
+      ],
+      "parameters": {
+        "jsCode": "const c = $json; const code = String(c.args || '').replace(/\\D/g, '');\nreturn [{ json: { ok: code.length >= 8, chat_id: c.chat_id, user_id: c.sub.user_id, barcode: code,\n  text: 'Send the barcode number, e.g. <code>/scan 3017620422003</code>, or a 📷 photo of the barcode.' } }];\n"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "tg-123",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "tg-123",
+      "name": "Valid Barcode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2800
+      ]
+    },
+    {
+      "id": "tg-124",
+      "name": "Scan Barcode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        2800
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/equipment/identify' }}",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ user_id: $json.user_id, barcode: $json.barcode, scan_mode: 'barcode' }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "tg-125",
+      "name": "Get Photo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        3000
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_TELEGRAM_CREDENTIAL_ID",
+          "name": "GymBuddy Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.photo_file_id }}",
+        "additionalFields": {},
+        "download": true
+      }
+    },
+    {
+      "id": "tg-126",
+      "name": "Photo To Data URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        3000
+      ],
+      "parameters": {
+        "jsCode": "const c = $('Attach Subscriber & Route').first().json;\nlet image = '';\ntry { const buf = await this.helpers.getBinaryDataBuffer(0, 'data'); const mime = $input.first().binary?.data?.mimeType || 'image/jpeg';\n  image = `data:${mime};base64,${buf.toString('base64')}`; } catch (e) { image = ''; }\nreturn [{ json: { chat_id: c.chat_id, user_id: c.sub.user_id, image_data_url: image, question: c.args || '' } }];\n"
+      }
+    },
+    {
+      "id": "tg-127",
+      "name": "Identify Photo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        3000
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/equipment/identify' }}",
+        "options": {
+          "timeout": 90000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ user_id: $json.user_id, image_data_url: $json.image_data_url, scan_mode: 'auto', question: $json.question }) }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "tg-128",
+      "name": "Format Scan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        2900
+      ],
+      "parameters": {
+        "jsCode": "const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst aiText = j => String(j?.choices?.[0]?.message?.content || '').replace(/<think>[\\s\\S]*?<\\/think>/g, '').trim();\nconst tg = s => esc(s).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>').replace(/^#+\\s*/gm, '').replace(/^[-*]\\s+/gm, '• ').slice(0, 3800);\nconst today = $now.toFormat('yyyy-MM-dd');\nconst bar = (v, t) => { const p = t > 0 ? Math.min(1, v / t) : 0; const f = Math.round(p * 10); return '█'.repeat(f) + '░'.repeat(10 - f) + ' ' + Math.round(p * 100) + '%'; };\nconst c = $('Attach Subscriber & Route').first().json; const r = $input.first().json;\nif (!r.reply) return [{ json: { chat_id: c.chat_id, text: c.command === 'photo' ? '⚠️ I could not analyse this photo right now. Try a clearer photo or again in a minute.' : '⚠️ I could not find this product right now. Check the number and try again.' } }];\nconst ex = (r.matched_exercises || []).slice(0, 3).map(e => `• <b>${esc(e.name)}</b>${e.gif_url ? ` · <a href=\"${esc(e.gif_url)}\">demo</a>` : ''}`).join('\\n');\nconst src = (r.sources || []).slice(0, 3).map(s => s.title || s.id).filter(Boolean);\nreturn [{ json: { chat_id: c.chat_id, text: `${tg(r.reply)}${ex ? `\\n\\n<b>Exercises on this machine</b>\\n${ex}` : ''}${src.length ? `\\n\\n📚 <i>${esc(src.join(' · '))}</i>` : ''}` } }];\n"
+      }
     }
   ],
   "connections": {
@@ -2162,7 +2795,7 @@
       "main": [
         [
           {
-            "node": "Route Command",
+            "node": "Save Member",
             "type": "main",
             "index": 0
           }
@@ -2174,6 +2807,13 @@
         [
           {
             "node": "Help Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile Reply",
             "type": "main",
             "index": 0
           }
@@ -2201,7 +2841,35 @@
         ],
         [
           {
+            "node": "Muscle Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Restaurant Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cook Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Barcode Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Photo",
             "type": "main",
             "index": 0
           }
@@ -2230,13 +2898,6 @@
         [
           {
             "node": "Pause Subscriber",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Ask To Link",
             "type": "main",
             "index": 0
           }
@@ -2623,17 +3284,6 @@
         ]
       ]
     },
-    "Ask To Link": {
-      "main": [
-        [
-          {
-            "node": "Send Telegram Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ask GymBuddy Chatbot": {
       "main": [
         [
@@ -2888,6 +3538,265 @@
         [
           {
             "node": "Send Weekly Recap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Member": {
+      "main": [
+        [
+          {
+            "node": "Member Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Member Context": {
+      "main": [
+        [
+          {
+            "node": "Route Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Muscle Query": {
+      "main": [
+        [
+          {
+            "node": "Muscle Known?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Muscle Known?": {
+      "main": [
+        [
+          {
+            "node": "Get Muscle Exercises",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Muscle Exercises": {
+      "main": [
+        [
+          {
+            "node": "Format Muscle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Muscle": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cook Input": {
+      "main": [
+        [
+          {
+            "node": "Has Ingredients?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Ingredients?": {
+      "main": [
+        [
+          {
+            "node": "AI Fridge Chef",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Fridge Chef": {
+      "main": [
+        [
+          {
+            "node": "Format Cook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Cook": {
+      "main": [
+        [
+          {
+            "node": "Has Dish Image?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Dish Image?": {
+      "main": [
+        [
+          {
+            "node": "Send Dish Photo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Dish Photo": {
+      "main": [
+        [
+          {
+            "node": "Cook Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cook Text": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Barcode Input": {
+      "main": [
+        [
+          {
+            "node": "Valid Barcode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Barcode?": {
+      "main": [
+        [
+          {
+            "node": "Scan Barcode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scan Barcode": {
+      "main": [
+        [
+          {
+            "node": "Format Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Photo": {
+      "main": [
+        [
+          {
+            "node": "Photo To Data URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Photo To Data URL": {
+      "main": [
+        [
+          {
+            "node": "Identify Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Photo": {
+      "main": [
+        [
+          {
+            "node": "Format Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Scan": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
             "type": "main",
             "index": 0
           }
