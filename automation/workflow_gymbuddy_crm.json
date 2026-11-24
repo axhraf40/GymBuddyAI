@@ -16,7 +16,10 @@
       "name": "Daily 07:30 Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [160, 260]
+      "position": [
+        160,
+        260
+      ]
     },
     {
       "parameters": {
@@ -29,7 +32,10 @@
       "name": "Manual / Lead Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [160, 440],
+      "position": [
+        160,
+        440
+      ],
       "webhookId": "gymbuddy-crm-sync"
     },
     {
@@ -53,7 +59,10 @@
       "name": "Fetch Opted-In Members (API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [400, 340]
+      "position": [
+        400,
+        340
+      ]
     },
     {
       "parameters": {
@@ -76,7 +85,10 @@
       "name": "Fetch SaaS Platform KPIs",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [400, 560],
+      "position": [
+        400,
+        560
+      ],
       "continueOnFail": true
     },
     {
@@ -95,7 +107,10 @@
       "name": "Has Opted-In Members?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [620, 340]
+      "position": [
+        620,
+        340
+      ]
     },
     {
       "parameters": {
@@ -106,7 +121,10 @@
       "name": "Split Members",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
-      "position": [840, 260]
+      "position": [
+        840,
+        260
+      ]
     },
     {
       "parameters": {
@@ -116,7 +134,10 @@
       "name": "CRM Lead Scoring & Segmentation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1060, 260]
+      "position": [
+        1060,
+        260
+      ]
     },
     {
       "parameters": {
@@ -150,7 +171,9 @@
             "status": "={{ $json.status }}",
             "next_action": "={{ $json.next_action }}"
           },
-          "matchingColumns": ["email"]
+          "matchingColumns": [
+            "email"
+          ]
         },
         "options": {}
       },
@@ -158,7 +181,10 @@
       "name": "Upsert Member in Google Sheets CRM",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [1280, 120],
+      "position": [
+        1280,
+        120
+      ],
       "continueOnFail": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -173,8 +199,20 @@
           "values": [
             {
               "conditions": {
-                "options": { "caseSensitive": true, "typeValidation": "strict" },
-                "conditions": [{ "leftValue": "={{ $json.segment }}", "rightValue": "VIP_PRO", "operator": { "type": "string", "operation": "equals" } }],
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.segment }}",
+                    "rightValue": "VIP_PRO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -182,8 +220,20 @@
             },
             {
               "conditions": {
-                "options": { "caseSensitive": true, "typeValidation": "strict" },
-                "conditions": [{ "leftValue": "={{ $json.segment }}", "rightValue": "HOT_LEAD", "operator": { "type": "string", "operation": "equals" } }],
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.segment }}",
+                    "rightValue": "HOT_LEAD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -200,7 +250,10 @@
       "name": "Route by CRM Segment",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [1280, 320]
+      "position": [
+        1280,
+        320
+      ]
     },
     {
       "parameters": {
@@ -209,20 +262,31 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.LLM_API_KEY }}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.45, max_tokens: 350, messages: [ { role: 'system', content: 'You are GymBuddy VIP Coach. Write a crisp morning coaching brief (under 140 words) for a PRO member: 1) Today\\'s exact workout focus + progressive overload cue, 2) Calorie, protein & water reminders, 3) One recovery/meal tip respecting diet, allergies and injuries.' }, { role: 'user', content: JSON.stringify($json) } ] }) }}",
-        "options": { "timeout": 30000 }
+        "options": {
+          "timeout": 30000
+        }
       },
       "id": "gb-010",
       "name": "AI Coach — VIP Pro Brief",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1540, 180],
+      "position": [
+        1540,
+        180
+      ],
       "continueOnFail": true
     },
     {
@@ -232,20 +296,31 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.LLM_API_KEY }}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.5, max_tokens: 350, messages: [ { role: 'system', content: 'You are GymBuddy AI Coach. Write a helpful morning plan (under 140 words) with today\\'s workout + macro targets, AND add one natural sentence highlighting how GymBuddy Pro (Smart In-Gym Chrono & Equipment Photo Scanner) saves time in the gym.' }, { role: 'user', content: JSON.stringify($json) } ] }) }}",
-        "options": { "timeout": 30000 }
+        "options": {
+          "timeout": 30000
+        }
       },
       "id": "gb-011",
       "name": "AI Coach — Hot Lead + Pro Offer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1540, 340],
+      "position": [
+        1540,
+        340
+      ],
       "continueOnFail": true
     },
     {
@@ -255,20 +330,31 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Authorization", "value": "=Bearer {{ $env.LLM_API_KEY }}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LLM_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.55, max_tokens: 320, messages: [ { role: 'system', content: 'You are GymBuddy AI Coach. Write a warm, guilt-free beginner coaching message (under 120 words) with today\\'s workout focus, protein/water targets, and an encouraging tip to stay consistent.' }, { role: 'user', content: JSON.stringify($json) } ] }) }}",
-        "options": { "timeout": 30000 }
+        "options": {
+          "timeout": 30000
+        }
       },
       "id": "gb-012",
       "name": "AI Coach — Beginner Nurture",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1540, 500],
+      "position": [
+        1540,
+        500
+      ],
       "continueOnFail": true
     },
     {
@@ -279,7 +365,10 @@
       "name": "Build Branded HTML Email + Fallback",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1820, 340]
+      "position": [
+        1820,
+        340
+      ]
     },
     {
       "parameters": {
@@ -294,7 +383,10 @@
       "name": "Send Branded Coaching Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [2060, 340],
+      "position": [
+        2060,
+        340
+      ],
       "credentials": {
         "smtp": {
           "id": "REPLACE_WITH_YOUR_SMTP_CREDENTIAL_ID",
@@ -310,7 +402,10 @@
       "name": "Aggregate SaaS Ops Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2280, 340]
+      "position": [
+        2280,
+        340
+      ]
     },
     {
       "parameters": {
@@ -324,7 +419,10 @@
       "name": "Send Admin Daily KPI Digest",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [2500, 340],
+      "position": [
+        2500,
+        340
+      ],
       "continueOnFail": true,
       "credentials": {
         "smtp": {
@@ -336,56 +434,177 @@
   ],
   "connections": {
     "Daily 07:30 Trigger": {
-      "main": [[
-        { "node": "Fetch Opted-In Members (API)", "type": "main", "index": 0 },
-        { "node": "Fetch SaaS Platform KPIs", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Fetch Opted-In Members (API)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch SaaS Platform KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Manual / Lead Webhook Trigger": {
-      "main": [[
-        { "node": "Fetch Opted-In Members (API)", "type": "main", "index": 0 },
-        { "node": "Fetch SaaS Platform KPIs", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Fetch Opted-In Members (API)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch SaaS Platform KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Fetch Opted-In Members (API)": {
-      "main": [[{ "node": "Has Opted-In Members?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Has Opted-In Members?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Has Opted-In Members?": {
-      "main": [[{ "node": "Split Members", "type": "main", "index": 0 }], []]
+      "main": [
+        [
+          {
+            "node": "Split Members",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
     },
     "Split Members": {
-      "main": [[{ "node": "CRM Lead Scoring & Segmentation", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "CRM Lead Scoring & Segmentation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "CRM Lead Scoring & Segmentation": {
-      "main": [[
-        { "node": "Upsert Member in Google Sheets CRM", "type": "main", "index": 0 },
-        { "node": "Route by CRM Segment", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Upsert Member in Google Sheets CRM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route by CRM Segment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Route by CRM Segment": {
       "main": [
-        [{ "node": "AI Coach — VIP Pro Brief", "type": "main", "index": 0 }],
-        [{ "node": "AI Coach — Hot Lead + Pro Offer", "type": "main", "index": 0 }],
-        [{ "node": "AI Coach — Beginner Nurture", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "AI Coach — VIP Pro Brief",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Coach — Hot Lead + Pro Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Coach — Beginner Nurture",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "AI Coach — VIP Pro Brief": {
-      "main": [[{ "node": "Build Branded HTML Email + Fallback", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Branded HTML Email + Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "AI Coach — Hot Lead + Pro Offer": {
-      "main": [[{ "node": "Build Branded HTML Email + Fallback", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Branded HTML Email + Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "AI Coach — Beginner Nurture": {
-      "main": [[{ "node": "Build Branded HTML Email + Fallback", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Branded HTML Email + Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Branded HTML Email + Fallback": {
-      "main": [[{ "node": "Send Branded Coaching Email", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Branded Coaching Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Send Branded Coaching Email": {
-      "main": [[{ "node": "Aggregate SaaS Ops Summary", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Aggregate SaaS Ops Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Aggregate SaaS Ops Summary": {
-      "main": [[{ "node": "Send Admin Daily KPI Digest", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Admin Daily KPI Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -396,5 +615,5 @@
   "meta": {
     "templateCredsSetupCompleted": false
   },
-  "tags": ["gymbuddy", "saas-crm", "ai", "coaching"]
+  "tags": []
 }

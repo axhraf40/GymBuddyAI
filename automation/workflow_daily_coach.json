@@ -16,7 +16,10 @@
       "name": "Daily 07:30 Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [220, 300]
+      "position": [
+        220,
+        300
+      ]
     },
     {
       "parameters": {
@@ -39,7 +42,10 @@
       "name": "Fetch Opted-In Users",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -57,7 +63,10 @@
       "name": "Has Users?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
@@ -68,7 +77,10 @@
       "name": "Split Users",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
-      "position": [880, 220]
+      "position": [
+        880,
+        220
+      ]
     },
     {
       "parameters": {
@@ -98,7 +110,10 @@
       "name": "Generate AI Daily Message",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1100, 220],
+      "position": [
+        1100,
+        220
+      ],
       "continueOnFail": true
     },
     {
@@ -109,7 +124,10 @@
       "name": "Format Email & Fallback",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1320, 220]
+      "position": [
+        1320,
+        220
+      ]
     },
     {
       "parameters": {
@@ -123,7 +141,10 @@
       "name": "Send Coaching Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [1540, 220],
+      "position": [
+        1540,
+        220
+      ],
       "credentials": {
         "smtp": {
           "id": "REPLACE_WITH_YOUR_SMTP_CREDENTIAL_ID",
@@ -139,33 +160,90 @@
       "name": "Log Execution Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1760, 220]
+      "position": [
+        1760,
+        220
+      ]
     }
   ],
   "connections": {
     "Daily 07:30 Trigger": {
-      "main": [[{ "node": "Fetch Opted-In Users", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Fetch Opted-In Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Fetch Opted-In Users": {
-      "main": [[{ "node": "Has Users?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Has Users?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Has Users?": {
       "main": [
-        [{ "node": "Split Users", "type": "main", "index": 0 }],
+        [
+          {
+            "node": "Split Users",
+            "type": "main",
+            "index": 0
+          }
+        ],
         []
       ]
     },
     "Split Users": {
-      "main": [[{ "node": "Generate AI Daily Message", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Generate AI Daily Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Generate AI Daily Message": {
-      "main": [[{ "node": "Format Email & Fallback", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Format Email & Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Format Email & Fallback": {
-      "main": [[{ "node": "Send Coaching Email", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Coaching Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Send Coaching Email": {
-      "main": [[{ "node": "Log Execution Summary", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Log Execution Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -176,5 +254,5 @@
   "meta": {
     "templateCredsSetupCompleted": false
   },
-  "tags": ["gymbuddy", "ai", "daily-coaching"]
+  "tags": []
 }
