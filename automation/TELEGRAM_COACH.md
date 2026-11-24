@@ -85,24 +85,18 @@ Every HTTP and Sheets node continues on error, and every AI message has a writte
    help - All commands
    ```
 2. **Google Sheet:** in the same spreadsheet as the CRM (`CRM_GOOGLE_SHEET_ID`), add 3 tabs named exactly `TG_Subscribers`, `TG_Workouts`, `TG_Meals`, and import the header row from [`tg_subscribers.csv`](./tg_subscribers.csv), [`tg_workouts.csv`](./tg_workouts.csv), [`tg_meals.csv`](./tg_meals.csv).
-3. **n8n needs a public HTTPS URL** for the Telegram Trigger. Use n8n Cloud, or locally `npx n8n start --tunnel`, or ngrok with `WEBHOOK_URL=https://<your-ngrok>.ngrok-free.app/`.
-4. **Environment variables** (same as the CRM workflow):
-
-   | Name | Value |
-   |---|---|
-   | `GYMBUDDY_API_URL` | `https://gymbuddy-api-zeta.vercel.app` (default) |
-   | `GYMBUDDY_API_KEY` | same value as the backend's `AUTOMATION_API_KEY` |
-   | `LLM_ENDPOINT` | `https://openrouter.ai/api/v1/chat/completions` (default) or any OpenAI-compatible endpoint |
-   | `LLM_MODEL` | `openrouter/free` (default) |
-   | `LLM_API_KEY` | your OpenRouter key |
-   | `LLM_MAX_TOKENS` | optional, default 1500 (free models are reasoning models and need room) |
-   | `CRM_GOOGLE_SHEET_ID` | the spreadsheet ID |
-   | `N8N_BLOCK_ENV_ACCESS_IN_NODE` | `false` (the workflow reads the variables above with `$env`) |
-
-   `automation/start-n8n.ps1` sets all of these from `backend/.env`; only `CRM_GOOGLE_SHEET_ID` must be set by hand.
-
+3. **Where to run it:** n8n Cloud (recommended: the Telegram webhook works out of the box) or a self-hosted n8n with a public HTTPS URL (`npx n8n start --tunnel`, ngrok). The workflow uses **no environment variables** (they are blocked on n8n Cloud): the API address is written in the nodes and secrets live in n8n credentials.
+4. **Google Sheet ID:** before importing, open `workflow_telegram_coach.json` in a text editor and replace every `REPLACE_WITH_GOOGLE_SHEET_ID` with your spreadsheet ID (the long part of the sheet URL between `/d/` and `/edit`). One *Replace all*.
 5. **Import:** n8n → *Workflows → Import from File* → `workflow_telegram_coach.json`.
-6. **Credentials:** create a *Telegram API* credential named `GymBuddy Telegram Bot` (paste the token) and select it on the 7 Telegram nodes (Trigger, Send Telegram Reply, Send Dish Photo, Get Photo, Send Morning Brief, Send Evening Nudge, Send Weekly Recap). Select your `GymBuddy Google Sheets` credential on the 13 Google Sheets nodes.
+6. **Credentials** (n8n → *Credentials → New*), then select each one on the nodes that show a red warning:
+
+   | Credential | Type | Fields | Used by |
+   |---|---|---|---|
+   | `GymBuddy Telegram Bot` | Telegram API | Access Token = token from `@BotFather` | 7 Telegram nodes |
+   | `GymBuddy Google Sheets` | Google Sheets OAuth2 API | *Sign in with Google* | 13 Google Sheets nodes |
+   | `OpenRouter API` | Header Auth | Name `Authorization`, Value `Bearer sk-or-...` (your OpenRouter key) | 5 AI nodes (today, macros, backup answer, morning brief, weekly recap) |
+   | `GymBuddy API Key` | Header Auth | Name `X-API-Key`, Value = the backend's `AUTOMATION_API_KEY` | 5 "Digest" nodes (only used to read app members for the optional `/link`) |
+
 7. **Activate** the workflow (the toggle top right). Telegram only delivers messages to an active workflow (or while you click *Test workflow*).
 8. **Test:** from any Telegram account (no website account needed) send the bot `/start`, `/profile 22 male 175cm 72kg muscle gym 3 days`, `/today`, `/muscle chest`, `/cook chicken, rice, broccoli`, a photo of your plate, `3017620422003`, `/workout`, your location, `/done`, `/log 2 eggs and toast`, `/report`. To test the schedules without waiting, open *Every Day 07:30* and click *Execute step*.
 
@@ -112,6 +106,8 @@ Every HTTP and Sheets node continues on error, and every AI message has a writte
 |---|---|---|---|---|
 | `GymBuddy Telegram Bot` | n8n credential `telegramApi` | Telegram Bot API | Read messages sent to the bot, send messages | `@BotFather` → `/newbot` → token → n8n *Credentials → New → Telegram API* |
 | `GymBuddy Google Sheets` | n8n credential `googleSheetsOAuth2Api` | Google Sheets | Read/write the 3 `TG_` tabs | Same credential as the CRM workflow |
+| `OpenRouter API` | n8n credential `httpHeaderAuth` | OpenRouter | Chat completions | https://openrouter.ai/keys → header `Authorization: Bearer <key>` |
+| `GymBuddy API Key` | n8n credential `httpHeaderAuth` | GymBuddy API | Read `/api/automation/daily-digest` | header `X-API-Key: <AUTOMATION_API_KEY>` |
 
 ## Limits to say in the presentation
 - The free AI tier allows about 50 requests per day: each member costs 1 request in the morning, 1 per `/today`, `/log` or backup answer, 1 on Sunday. The evening nudge and `/workout`, `/eat`, `/done`, `/report` use no AI.

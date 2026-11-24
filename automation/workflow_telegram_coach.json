@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## 🏋️ GymBuddy AI — Telegram Coach (open to everyone)\nPart 1 (top): **the bot**. Anyone on Telegram can use it, no website account needed: /profile, /today, /workout, /muscle, /cook (recipe + dish image), 📷 photo scan, /scan barcode, /eat, /done, /log, /report, or any free question.\n\nPart 2 (bottom): **3 schedules** push messages without being asked: 07:30 morning brief, 20:30 streak nudge, Sunday 19:00 weekly recap.\n\nData: the live GymBuddy API (profile, targets, workouts, restaurants, chatbot, vision, fridge chef) + 3 tabs in the Google Sheet (`TG_Subscribers`, `TG_Workouts`, `TG_Meals`).\n\nBuilt on ideas from the n8n community templates #7756 (John Alejandro Silva) and #16969 (Dr. Firas). See automation/TELEGRAM_COACH.md.",
+        "content": "## 🏋️ GymBuddy AI — Telegram Coach (open to everyone)\nPart 1 (top): **the bot**. Anyone on Telegram can use it, no website account needed: /profile, /today, /workout, /muscle, /cook (recipe + dish image), 📷 photo scan, /scan barcode, /eat, /done, /log, /report, or any free question.\n\nPart 2 (bottom): **3 schedules** push messages without being asked: 07:30 morning brief, 20:30 streak nudge, Sunday 19:00 weekly recap.\n\nData: the live GymBuddy API (profile, targets, workouts, restaurants, chatbot, vision, fridge chef) + 3 tabs in the Google Sheet (`TG_Subscribers`, `TG_Workouts`, `TG_Meals`).\n\nBuilt on ideas from the n8n community templates #7756 (John Alejandro Silva) and #16969 (Dr. Firas). See automation/TELEGRAM_COACH.md.\n\n**Setup (n8n Cloud or self-hosted, no environment variables):** replace `REPLACE_WITH_GOOGLE_SHEET_ID` with your sheet ID, then create 4 credentials: Telegram API, Google Sheets OAuth2, Header Auth `OpenRouter API` (Authorization = Bearer sk-or-...), Header Auth `GymBuddy API Key` (X-API-Key = backend AUTOMATION_API_KEY).",
         "height": 360,
         "width": 520,
         "color": 5
@@ -57,7 +57,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -87,7 +87,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Every Telegram user is a member: no website account needed.\n// A GymBuddy API user is created from the Telegram profile (or recreated if the API database was reset),\n// so the chatbot, workouts, restaurants, photo scanner and fridge chef are personalised for everybody.\nconst API = ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app').replace(/\\/+$/, '');\nconst helpers = this.helpers;\nconst cmd = $('Parse Command').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id);\nconst row = rows.find(r => String(r.chat_id) === cmd.chat_id) || null;\nconst isNew = !row;\n\nlet profile = {};\ntry { profile = JSON.parse(row?.profile_json || '{}') || {}; } catch (e) { profile = {}; }\nif (!profile.language) profile.language = row?.language || cmd.lang_hint;\n\n// ---- /profile 22 m 175 72 muscle gym 3 halal allergy peanuts injury knee ----\nfunction parseProfile(raw) {\n  const p = {}, unknown = [];\n  const s = ' ' + String(raw).toLowerCase().replace(/,/g, ' ') + ' ';\n  const take = (re) => { const m = s.match(re); return m ? m : null; };\n  let m;\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(cm)\\b/))) p.height_cm = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(kg|kilos?)\\b/))) p.weight_kg = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{1,2})\\s*(ans|years?|yo|y)\\b/))) p.age = Number(m[1]);\n  if ((m = take(/\\b([1-7])\\s*(d|days?|jours?|j|x|x\\/week|\\/week|\\/sem|sessions?)\\b/))) p.days_per_week = Number(m[1]);\n  const bare = (s.match(/(?<![\\d.,])\\d{1,3}(?:[.,]\\d)?(?![\\d.,]*\\s*(cm|kg|kilos?|ans|years?|yo|y|d|days?|jours?|j|x|sessions?)\\b)/g) || []).map(x => Number(x.replace(',', '.')));\n  for (const n of bare) {\n    if (p.age === undefined && n >= 14 && n <= 90 && !(n >= 120)) { p.age = n; continue; }\n    if (p.height_cm === undefined && n >= 120 && n <= 230) { p.height_cm = n; continue; }\n    if (p.weight_kg === undefined && n >= 30 && n <= 250) { p.weight_kg = n; continue; }\n    if (p.days_per_week === undefined && n >= 1 && n <= 7) { p.days_per_week = n; continue; }\n  }\n  if (/\\b(f|female|femme|woman|girl|fille)\\b/.test(s)) p.sex = 'female'; else if (/\\b(m|male|homme|man|boy|garcon|garçon)\\b/.test(s)) p.sex = 'male';\n  if (/\\b(lose|cut|fat|weight loss|perte|perdre|maigrir|seche|sèche)\\b/.test(s)) p.goal = 'lose_fat';\n  else if (/\\b(recomp|recomposition)\\b/.test(s)) p.goal = 'recomp';\n  else if (/\\b(maintain|maintien|maintenir)\\b/.test(s)) p.goal = 'maintain';\n  else if (/\\b(muscle|bulk|mass|masse|gain|prise)\\b/.test(s)) p.goal = 'build_muscle';\n  if (/\\b(bodyweight|no equipment|sans materiel|sans matériel|poids du corps|calisthenics)\\b/.test(s)) p.equipment = 'bodyweight';\n  else if (/\\b(dumbbells?|halteres?|haltères?|home|maison)\\b/.test(s)) p.equipment = 'dumbbells';\n  else if (/\\b(gym|salle)\\b/.test(s)) p.equipment = 'gym';\n  if (/\\b(vegan|végan)\\b/.test(s)) p.diet = 'vegan'; else if (/\\b(vegetarian|végétarien|vegetarien)\\b/.test(s)) p.diet = 'vegetarian'; else if (/\\bhalal\\b/.test(s)) p.diet = 'halal';\n  if (/\\b(advanced|avancé|avance)\\b/.test(s)) p.experience = 'advanced'; else if (/\\b(intermediate|intermédiaire|intermediaire)\\b/.test(s)) p.experience = 'intermediate'; else if (/\\b(beginner|débutant|debutant)\\b/.test(s)) p.experience = 'beginner';\n  if (/\\b(sedentary|sédentaire|sedentaire)\\b/.test(s)) p.activity = 'sedentary'; else if (/\\b(very active|très actif|tres actif)\\b/.test(s)) p.activity = 'very_active';\n  if ((m = s.match(/\\b(?:allerg(?:y|ies|ie|ique)?|allergic to)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:injur|bless|$)|\\s{2}|$)/))) p.allergies = m[1].trim().split(/\\s+(?:and|et)\\s+|\\s+/).filter(w => w.length > 2);\n  if ((m = s.match(/\\b(?:injur(?:y|ies|ed)?|blessures?|bless[ée]?)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:allerg|$)|\\s{2}|$)/))) p.injuries = m[1].trim().split(/\\s+(?:and|et)\\s+/).map(w => w.trim()).filter(Boolean);\n  if (/\\b(fr|français|francais)\\b/.test(s)) p.language = 'fr'; else if (/\\b(en|english|anglais)\\b/.test(s)) p.language = 'en';\n  return { p, unknown };\n}\n\nlet profileUpdated = false;\nif (cmd.command === 'profile' && cmd.args) {\n  const r = parseProfile(cmd.args);\n  if (Object.keys(r.p).length) { Object.assign(profile, r.p); profileUpdated = true; }\n}\n\nconst KEYS = ['age', 'sex', 'height_cm', 'weight_kg', 'activity', 'goal', 'experience', 'days_per_week', 'equipment', 'diet', 'allergies', 'injuries', 'language'];\nconst clean = {}; for (const k of KEYS) if (profile[k] !== undefined && profile[k] !== '') clean[k] = profile[k];\n\nasync function api(method, path, body) {\n  try {\n    return await helpers.httpRequest({ method, url: API + path, body, json: true, timeout: 20000 });\n  } catch (e) { return null; }\n}\nlet userId = row?.user_id || '';\nlet user = null;\nif (userId && !profileUpdated) user = await api('GET', `/api/users/${encodeURIComponent(userId)}`);\nif (!user) {\n  user = await api('POST', '/api/users', { name: String(row?.name || cmd.first_name).slice(0, 80), profile: clean });\n  if (user?.user_id) userId = user.user_id;\n}\nconst t = user?.targets || {};\nconst p = user?.profile || clean;\nconst sub = {\n  chat_id: cmd.chat_id, email: row?.email || '', user_id: userId, name: row?.name || cmd.first_name,\n  calories_target: t.calories ?? row?.calories_target ?? '', protein_g: t.protein_g ?? row?.protein_g ?? '',\n  carbs_g: t.carbs_g ?? row?.carbs_g ?? '', fat_g: t.fat_g ?? row?.fat_g ?? '', water_l: t.water_l ?? row?.water_l ?? '',\n  language: p.language || profile.language || 'en',\n  streak: row?.streak || 0, best_streak: row?.best_streak || 0, total_workouts: row?.total_workouts || 0, last_done: row?.last_done || '',\n  active: (isNew || cmd.is_start || profileUpdated) ? 'yes' : (row?.active || 'yes'),\n  joined_at: row?.joined_at || $now.toISO(), linked_at: row?.linked_at || '',\n  profile_json: JSON.stringify(Object.fromEntries(KEYS.filter(k => p[k] !== undefined).map(k => [k, p[k]]))),\n};\nreturn [{ json: { ...cmd, linked: !!sub.email, is_new: isNew, has_profile: !!(row?.profile_json) || profileUpdated,\n  profile_updated: profileUpdated, api_ok: !!user, targets: t, sub, route: cmd.command } }];\n"
+        "jsCode": "// Every Telegram user is a member: no website account needed.\n// A GymBuddy API user is created from the Telegram profile (or recreated if the API database was reset),\n// so the chatbot, workouts, restaurants, photo scanner and fridge chef are personalised for everybody.\nconst API = 'https://gymbuddy-api-zeta.vercel.app'.replace(/\\/+$/, '');\nconst helpers = this.helpers;\nconst cmd = $('Parse Command').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id);\nconst row = rows.find(r => String(r.chat_id) === cmd.chat_id) || null;\nconst isNew = !row;\n\nlet profile = {};\ntry { profile = JSON.parse(row?.profile_json || '{}') || {}; } catch (e) { profile = {}; }\nif (!profile.language) profile.language = row?.language || cmd.lang_hint;\n\n// ---- /profile 22 m 175 72 muscle gym 3 halal allergy peanuts injury knee ----\nfunction parseProfile(raw) {\n  const p = {}, unknown = [];\n  const s = ' ' + String(raw).toLowerCase().replace(/,/g, ' ') + ' ';\n  const take = (re) => { const m = s.match(re); return m ? m : null; };\n  let m;\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(cm)\\b/))) p.height_cm = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{2,3}(?:[.,]\\d)?)\\s*(kg|kilos?)\\b/))) p.weight_kg = Number(m[1].replace(',', '.'));\n  if ((m = take(/\\b(\\d{1,2})\\s*(ans|years?|yo|y)\\b/))) p.age = Number(m[1]);\n  if ((m = take(/\\b([1-7])\\s*(d|days?|jours?|j|x|x\\/week|\\/week|\\/sem|sessions?)\\b/))) p.days_per_week = Number(m[1]);\n  const bare = (s.match(/(?<![\\d.,])\\d{1,3}(?:[.,]\\d)?(?![\\d.,]*\\s*(cm|kg|kilos?|ans|years?|yo|y|d|days?|jours?|j|x|sessions?)\\b)/g) || []).map(x => Number(x.replace(',', '.')));\n  for (const n of bare) {\n    if (p.age === undefined && n >= 14 && n <= 90 && !(n >= 120)) { p.age = n; continue; }\n    if (p.height_cm === undefined && n >= 120 && n <= 230) { p.height_cm = n; continue; }\n    if (p.weight_kg === undefined && n >= 30 && n <= 250) { p.weight_kg = n; continue; }\n    if (p.days_per_week === undefined && n >= 1 && n <= 7) { p.days_per_week = n; continue; }\n  }\n  if (/\\b(f|female|femme|woman|girl|fille)\\b/.test(s)) p.sex = 'female'; else if (/\\b(m|male|homme|man|boy|garcon|garçon)\\b/.test(s)) p.sex = 'male';\n  if (/\\b(lose|cut|fat|weight loss|perte|perdre|maigrir|seche|sèche)\\b/.test(s)) p.goal = 'lose_fat';\n  else if (/\\b(recomp|recomposition)\\b/.test(s)) p.goal = 'recomp';\n  else if (/\\b(maintain|maintien|maintenir)\\b/.test(s)) p.goal = 'maintain';\n  else if (/\\b(muscle|bulk|mass|masse|gain|prise)\\b/.test(s)) p.goal = 'build_muscle';\n  if (/\\b(bodyweight|no equipment|sans materiel|sans matériel|poids du corps|calisthenics)\\b/.test(s)) p.equipment = 'bodyweight';\n  else if (/\\b(dumbbells?|halteres?|haltères?|home|maison)\\b/.test(s)) p.equipment = 'dumbbells';\n  else if (/\\b(gym|salle)\\b/.test(s)) p.equipment = 'gym';\n  if (/\\b(vegan|végan)\\b/.test(s)) p.diet = 'vegan'; else if (/\\b(vegetarian|végétarien|vegetarien)\\b/.test(s)) p.diet = 'vegetarian'; else if (/\\bhalal\\b/.test(s)) p.diet = 'halal';\n  if (/\\b(advanced|avancé|avance)\\b/.test(s)) p.experience = 'advanced'; else if (/\\b(intermediate|intermédiaire|intermediaire)\\b/.test(s)) p.experience = 'intermediate'; else if (/\\b(beginner|débutant|debutant)\\b/.test(s)) p.experience = 'beginner';\n  if (/\\b(sedentary|sédentaire|sedentaire)\\b/.test(s)) p.activity = 'sedentary'; else if (/\\b(very active|très actif|tres actif)\\b/.test(s)) p.activity = 'very_active';\n  if ((m = s.match(/\\b(?:allerg(?:y|ies|ie|ique)?|allergic to)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:injur|bless|$)|\\s{2}|$)/))) p.allergies = m[1].trim().split(/\\s+(?:and|et)\\s+|\\s+/).filter(w => w.length > 2);\n  if ((m = s.match(/\\b(?:injur(?:y|ies|ed)?|blessures?|bless[ée]?)\\s*[:=]?\\s*([a-zà-ÿ ]+?)(?=\\b(?:allerg|$)|\\s{2}|$)/))) p.injuries = m[1].trim().split(/\\s+(?:and|et)\\s+/).map(w => w.trim()).filter(Boolean);\n  if (/\\b(fr|français|francais)\\b/.test(s)) p.language = 'fr'; else if (/\\b(en|english|anglais)\\b/.test(s)) p.language = 'en';\n  return { p, unknown };\n}\n\nlet profileUpdated = false;\nif (cmd.command === 'profile' && cmd.args) {\n  const r = parseProfile(cmd.args);\n  if (Object.keys(r.p).length) { Object.assign(profile, r.p); profileUpdated = true; }\n}\n\nconst KEYS = ['age', 'sex', 'height_cm', 'weight_kg', 'activity', 'goal', 'experience', 'days_per_week', 'equipment', 'diet', 'allergies', 'injuries', 'language'];\nconst clean = {}; for (const k of KEYS) if (profile[k] !== undefined && profile[k] !== '') clean[k] = profile[k];\n\nasync function api(method, path, body) {\n  try {\n    return await helpers.httpRequest({ method, url: API + path, body, json: true, timeout: 20000 });\n  } catch (e) { return null; }\n}\nlet userId = row?.user_id || '';\nlet user = null;\nif (userId && !profileUpdated) user = await api('GET', `/api/users/${encodeURIComponent(userId)}`);\nif (!user) {\n  user = await api('POST', '/api/users', { name: String(row?.name || cmd.first_name).slice(0, 80), profile: clean });\n  if (user?.user_id) userId = user.user_id;\n}\nconst t = user?.targets || {};\nconst p = user?.profile || clean;\nconst sub = {\n  chat_id: cmd.chat_id, email: row?.email || '', user_id: userId, name: row?.name || cmd.first_name,\n  calories_target: t.calories ?? row?.calories_target ?? '', protein_g: t.protein_g ?? row?.protein_g ?? '',\n  carbs_g: t.carbs_g ?? row?.carbs_g ?? '', fat_g: t.fat_g ?? row?.fat_g ?? '', water_l: t.water_l ?? row?.water_l ?? '',\n  language: p.language || profile.language || 'en',\n  streak: row?.streak || 0, best_streak: row?.best_streak || 0, total_workouts: row?.total_workouts || 0, last_done: row?.last_done || '',\n  active: (isNew || cmd.is_start || profileUpdated) ? 'yes' : (row?.active || 'yes'),\n  joined_at: row?.joined_at || $now.toISO(), linked_at: row?.linked_at || '',\n  profile_json: JSON.stringify(Object.fromEntries(KEYS.filter(k => p[k] !== undefined).map(k => [k, p[k]]))),\n};\nreturn [{ json: { ...cmd, linked: !!sub.email, is_new: isNew, has_profile: !!(row?.profile_json) || profileUpdated,\n  profile_updated: profileUpdated, api_ok: !!user, targets: t, sub, route: cmd.command } }];\n"
       },
       "id": "tg-005",
       "name": "Attach Subscriber & Route",
@@ -468,19 +468,12 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/automation/daily-digest' }}",
         "options": {
           "timeout": 25000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-009",
       "name": "Digest (link)",
@@ -491,7 +484,13 @@
         -740
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GYMBUDDY_CREDENTIAL_ID",
+          "name": "GymBuddy API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -544,7 +543,7 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -736,19 +735,12 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/automation/daily-digest' }}",
         "options": {
           "timeout": 25000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-014",
       "name": "Digest (today)",
@@ -759,7 +751,13 @@
         -480
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GYMBUDDY_CREDENTIAL_ID",
+          "name": "GymBuddy API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -777,14 +775,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "url": "={{ 'https://openrouter.ai/api/v1/chat/completions' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LLM_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -793,10 +787,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, an upbeat but precise gym coach writing a Telegram message. Using the member JSON, write max 120 words: 1) today's session focus with 2-3 key exercises and one technique cue (respect equipment and injuries), 2) one simple meal idea that fits the calorie/protein targets and respects diet and allergies, 3) one short motivational line that mentions the streak if it is above 0. Use short lines and emojis, no tables, no markdown headings. Answer in the member's language (en or fr).\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openrouter/free', temperature: 0.6, max_tokens: 1500, messages: [ { role: 'system', content: \"You are GymBuddy, an upbeat but precise gym coach writing a Telegram message. Using the member JSON, write max 120 words: 1) today's session focus with 2-3 key exercises and one technique cue (respect equipment and injuries), 2) one simple meal idea that fits the calorie/protein targets and respects diet and allergies, 3) one short motivational line that mentions the streak if it is above 0. Use short lines and emojis, no tables, no markdown headings. Answer in the member's language (en or fr).\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
         "options": {
           "timeout": 45000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-016",
       "name": "AI Today Plan",
@@ -807,7 +803,13 @@
         -480
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
@@ -825,19 +827,12 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/automation/daily-digest' }}",
         "options": {
           "timeout": 25000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-018",
       "name": "Digest (workout)",
@@ -848,7 +843,13 @@
         -220
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GYMBUDDY_CREDENTIAL_ID",
+          "name": "GymBuddy API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -866,16 +867,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/workouts/session' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/workouts/session' }}",
         "options": {
           "timeout": 25000
         },
@@ -966,7 +958,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/restaurants/nearby' }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/restaurants/nearby' }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.body) }}",
@@ -1016,7 +1008,7 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1107,7 +1099,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1252,14 +1244,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "url": "={{ 'https://openrouter.ai/api/v1/chat/completions' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LLM_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -1268,10 +1256,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.2, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are a sports nutritionist. Estimate the nutrition of the meal the user describes, using typical portions (Moroccan and Mediterranean dishes are common). Reply with ONLY a JSON object, no text around it: {\\\"meal\\\": short clean name, \\\"calories\\\": number, \\\"protein_g\\\": number, \\\"carbs_g\\\": number, \\\"fat_g\\\": number, \\\"tip\\\": one short sentence to make it healthier or a compliment}.\" }, { role: 'user', content: $json.meal } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openrouter/free', temperature: 0.2, max_tokens: 1500, messages: [ { role: 'system', content: \"You are a sports nutritionist. Estimate the nutrition of the meal the user describes, using typical portions (Moroccan and Mediterranean dishes are common). Reply with ONLY a JSON object, no text around it: {\\\"meal\\\": short clean name, \\\"calories\\\": number, \\\"protein_g\\\": number, \\\"carbs_g\\\": number, \\\"fat_g\\\": number, \\\"tip\\\": one short sentence to make it healthier or a compliment}.\" }, { role: 'user', content: $json.meal } ] }) }}",
         "options": {
           "timeout": 45000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-032",
       "name": "AI Estimate Macros",
@@ -1282,7 +1272,13 @@
         500
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
@@ -1302,7 +1298,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1432,7 +1428,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1478,7 +1474,7 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1550,7 +1546,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/chat' }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/chat' }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ user_id: $json.sub.user_id || 'unknown', message: $json.text }) }}",
@@ -1618,14 +1614,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "url": "={{ 'https://openrouter.ai/api/v1/chat/completions' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LLM_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -1634,10 +1626,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a friendly evidence-based gym and nutrition coach on Telegram. Answer in max 120 words, in the user's language, with practical steps. For pain, injury or medical questions, advise seeing a professional. Never recommend drugs or extreme diets.\" }, { role: 'user', content: 'My profile: ' + $('Attach Subscriber & Route').first().json.sub.profile_json + '\\nMy targets: ' + $('Attach Subscriber & Route').first().json.sub.calories_target + ' kcal, ' + $('Attach Subscriber & Route').first().json.sub.protein_g + ' g protein.\\nQuestion: ' + $('Attach Subscriber & Route').first().json.text } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openrouter/free', temperature: 0.6, max_tokens: 1500, messages: [ { role: 'system', content: \"You are GymBuddy, a friendly evidence-based gym and nutrition coach on Telegram. Answer in max 120 words, in the user's language, with practical steps. For pain, injury or medical questions, advise seeing a professional. Never recommend drugs or extreme diets.\" }, { role: 'user', content: 'My profile: ' + $('Attach Subscriber & Route').first().json.sub.profile_json + '\\nMy targets: ' + $('Attach Subscriber & Route').first().json.sub.calories_target + ' kcal, ' + $('Attach Subscriber & Route').first().json.sub.protein_g + ' g protein.\\nQuestion: ' + $('Attach Subscriber & Route').first().json.text } ] }) }}",
         "options": {
           "timeout": 45000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-044",
       "name": "AI Coach (backup)",
@@ -1648,7 +1642,13 @@
         1680
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
@@ -1719,7 +1719,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1749,19 +1749,12 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/automation/daily-digest' }}",
         "options": {
           "timeout": 25000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-050",
       "name": "Digest (AM)",
@@ -1773,7 +1766,13 @@
       ],
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
-      "executeOnce": true
+      "executeOnce": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GYMBUDDY_CREDENTIAL_ID",
+          "name": "GymBuddy API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -1791,14 +1790,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "url": "={{ 'https://openrouter.ai/api/v1/chat/completions' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LLM_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -1807,10 +1802,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a motivating gym coach. Write a Telegram good-morning message (max 90 words) for this member: greet by first name, today's session focus with one key exercise and cue (or a recovery idea on rest days), the calorie/protein/water targets in one line, one breakfast idea that respects diet and allergies, and a punchy closing line (mention the streak if above 0). Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openrouter/free', temperature: 0.6, max_tokens: 1500, messages: [ { role: 'system', content: \"You are GymBuddy, a motivating gym coach. Write a Telegram good-morning message (max 90 words) for this member: greet by first name, today's session focus with one key exercise and cue (or a recovery idea on rest days), the calorie/protein/water targets in one line, one breakfast idea that respects diet and allergies, and a punchy closing line (mention the streak if above 0). Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify({ ...$json.member, streak: $json.streak, weekday: $now.toFormat('cccc') }) } ] }) }}",
         "options": {
           "timeout": 45000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-052",
       "name": "AI Morning Brief",
@@ -1821,7 +1818,13 @@
         1900
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
@@ -1887,7 +1890,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -1917,19 +1920,12 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/automation/daily-digest' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-API-Key",
-              "value": "={{ $env.GYMBUDDY_API_KEY || 'change-me' }}"
-            }
-          ]
-        },
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/automation/daily-digest' }}",
         "options": {
           "timeout": 25000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-057",
       "name": "Digest (PM)",
@@ -1941,7 +1937,13 @@
       ],
       "onError": "continueRegularOutput",
       "alwaysOutputData": true,
-      "executeOnce": true
+      "executeOnce": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_GYMBUDDY_CREDENTIAL_ID",
+          "name": "GymBuddy API Key"
+        }
+      }
     },
     {
       "parameters": {
@@ -2019,7 +2021,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -2050,7 +2052,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -2082,7 +2084,7 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -2126,14 +2128,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.LLM_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions' }}",
+        "url": "={{ 'https://openrouter.ai/api/v1/chat/completions' }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.LLM_API_KEY }}"
-            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -2142,10 +2140,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: $env.LLM_MODEL || 'openrouter/free', temperature: 0.6, max_tokens: Number($env.LLM_MAX_TOKENS || 1500), messages: [ { role: 'system', content: \"You are GymBuddy, a supportive coach. Write a Telegram weekly recap (max 110 words) from these stats: celebrate the wins with numbers, point out ONE thing to improve next week (training consistency, protein or calories vs target, or logging more meals), and give one concrete mini-challenge for next week. Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify($json.stats) } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'openrouter/free', temperature: 0.6, max_tokens: 1500, messages: [ { role: 'system', content: \"You are GymBuddy, a supportive coach. Write a Telegram weekly recap (max 110 words) from these stats: celebrate the wins with numbers, point out ONE thing to improve next week (training consistency, protein or calories vs target, or logging more meals), and give one concrete mini-challenge for next week. Emojis welcome, no headings. Answer in the member's language.\" }, { role: 'user', content: JSON.stringify($json.stats) } ] }) }}",
         "options": {
           "timeout": 45000
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "tg-066",
       "name": "AI Weekly Recap",
@@ -2156,7 +2156,13 @@
         2420
       ],
       "onError": "continueRegularOutput",
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
     },
     {
       "parameters": {
@@ -2203,7 +2209,7 @@
         "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.CRM_GOOGLE_SHEET_ID || 'REPLACE_WITH_GOOGLE_SHEET_ID' }}",
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
           "mode": "id"
         },
         "sheetName": {
@@ -2443,7 +2449,7 @@
       ],
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/muscles/' + $json.muscle + '/exercises?user_id=' + encodeURIComponent($json.user_id || '') }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/muscles/' + $json.muscle + '/exercises?user_id=' + encodeURIComponent($json.user_id || '') }}",
         "options": {
           "timeout": 25000
         }
@@ -2521,7 +2527,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/nutrition/fridge-meals' }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/nutrition/fridge-meals' }}",
         "options": {
           "timeout": 120000
         },
@@ -2674,7 +2680,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/equipment/identify' }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/equipment/identify' }}",
         "options": {
           "timeout": 60000
         },
@@ -2732,7 +2738,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "={{ ($env.GYMBUDDY_API_URL || 'https://gymbuddy-api-zeta.vercel.app') + '/api/equipment/identify' }}",
+        "url": "={{ 'https://gymbuddy-api-zeta.vercel.app' + '/api/equipment/identify' }}",
         "options": {
           "timeout": 90000
         },
