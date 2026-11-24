@@ -50,7 +50,7 @@ export function Navbar({ user, health, onOpenProfile, onOpenFeedback }: NavbarPr
 
           {health && !health.mock_mode && (
             <span className="hidden rounded-full border border-forest-deep/10 bg-lime/60 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-forest-deep 2xl:inline-block">
-              {health.llm_model}
+              AI online
             </span>
           )}
         </div>
