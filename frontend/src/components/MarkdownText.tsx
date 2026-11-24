@@ -42,6 +42,24 @@ export function MarkdownText({ text }: { text: string }) {
       {lines.map((line, i) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={i} className="h-1" />;
+        const heading = trimmed.match(/^#{1,6}\s+(.*)$/);
+        if (heading) {
+          return (
+            <p key={i} className="pt-1 font-display font-bold text-forest-deep">
+              {renderInline(heading[1].replace(/\*\*/g, ""))}
+            </p>
+          );
+        }
+        if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) return <hr key={i} className="border-ink/10" />;
+        const numbered = trimmed.match(/^(\d+)[.)]\s+(.*)$/);
+        if (numbered) {
+          return (
+            <div key={i} className="flex gap-2 pl-1">
+              <span className="shrink-0 font-semibold text-forest">{numbered[1]}.</span>
+              <span>{renderInline(numbered[2])}</span>
+            </div>
+          );
+        }
         if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
           return (
             <div key={i} className="flex gap-2 pl-1">
