@@ -56,6 +56,15 @@ The same scripted run was executed on `http://localhost:3000` and on the live si
 | 21 | /pricing | Monthly/annual toggle, Start Pro → "Pro activated" | ✅ | ✅ | Demo activation, no real payment |
 | 22 | all | Internal links resolve, `/terms`, `/privacy`, 404 page | ✅ | ✅ | `/favicon.ico` was missing (404 on every page) → **fixed** |
 
+### Found while recording the feature video (24 Nov 2026, local production build)
+| Finding | Status |
+|---|---|
+| Slow AI answers (>30 s: Auto, Nemotron 3 Ultra, fridge chef) returned **HTTP 500** locally because the Next.js `/api` proxy times out after 30 s | **Fixed**: `experimental.proxyTimeout = 120 s` in `next.config.mjs` (the live site was not affected: a 52 s fridge request returned 200) |
+| Top bar showed the raw model id `openrouter/free` on wide screens | **Fixed**: now shows "AI online" |
+| Chat answers with `###` headings or `1.` lists were shown as raw text | **Fixed** in `MarkdownText.tsx` |
+| Gemma 4 31B and Gemma 4 26B: HTTP 429 "rate-limited upstream" (Google AI Studio) on every try that day | Not a code bug: the fallback chain answered with Nemotron 3 Ultra and the badge showed it honestly. Gemma only works when Google's free pool has capacity |
+| Fridge chef: once the text model returned an empty answer, so the meal text came from the offline composer while the dish image was still generated | Works as designed (fallback); the text is shorter in that case |
+
 ## 4. How to re-run the browser test
 The script is not part of the app. It uses `playwright-core` with the installed Chrome:
 ```

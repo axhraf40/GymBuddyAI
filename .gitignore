@@ -20,3 +20,6 @@ Thumbs.db
 # Build/deploy metadata
 *.tsbuildinfo
 .vercel/
+
+# Demo video build files (the final brag.mp4 stays local, too big for git)
+brag-output/
