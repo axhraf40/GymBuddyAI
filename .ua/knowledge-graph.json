@@ -1,0 +1,3413 @@
+{
+ "version": "1.0.0",
+ "kind": "codebase",
+ "project": {
+  "name": "GymBuddy AI",
+  "languages": [
+   "python",
+   "typescript"
+  ],
+  "frameworks": [
+   "FastAPI",
+   "Next.js",
+   "React",
+   "SQLAlchemy",
+   "Tailwind CSS",
+   "n8n"
+  ],
+  "description": "AI gym & nutrition coach: a RAG chatbot with guardrails inside a web platform (muscle map, gym chrono, nutrition), deployed on Vercel, with n8n automations.",
+  "analyzedAt": "2026-11-24T15:10:51.996541+00:00",
+  "gitCommitHash": "461d9e1b5fd27a92e69c05b7d9fdb99eab0dba8d"
+ },
+ "nodes": [
+  {
+   "id": "file:backend/app/main.py",
+   "type": "file",
+   "name": "main.py",
+   "summary": "FastAPI application: every HTTP route of the chatbot API (auth, users, chat, vision, conversations, ratings, feedback, muscles, workouts, nutrition, restaurants, n8n digest, admin stats) plus the signed-token restore used on Vercel.",
+   "tags": [
+    "api",
+    "fastapi",
+    "entry-point"
+   ],
+   "complexity": "complex",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1,
+    1095
+   ]
+  },
+  {
+   "id": "file:backend/app/chatbot.py",
+   "type": "file",
+   "name": "chatbot.py",
+   "summary": "The chatbot pipeline. answer() runs input guardrails → muscle detection → sliding-window history → BM25 retrieval → LLM (or offline composer) → output checks → sources. Also fridge meals, barcode (Open Food Facts) and the 3-in-1 vision scanner.",
+   "tags": [
+    "rag",
+    "pipeline",
+    "core"
+   ],
+   "complexity": "complex",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    1,
+    602
+   ]
+  },
+  {
+   "id": "file:backend/app/llm.py",
+   "type": "file",
+   "name": "llm.py",
+   "summary": "Provider-agnostic, OpenAI-compatible LLM client. Lists the 6 selectable OpenRouter models, caps reasoning tokens, tries fallback models on error/429/empty answer, calls vision models and generates dish images.",
+   "tags": [
+    "llm",
+    "openrouter",
+    "fallback"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    1,
+    264
+   ]
+  },
+  {
+   "id": "file:backend/app/retrieval.py",
+   "type": "file",
+   "name": "retrieval.py",
+   "summary": "Loads the JSON knowledge base (exercises, foods, recipes, principles, equipment) into 281 documents and ranks them with a hand-written BM25, boosted by the selected muscle and filtered by equipment and allergens. Also detects muscles in EN/FR text.",
+   "tags": [
+    "rag",
+    "bm25",
+    "search"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    1,
+    258
+   ]
+  },
+  {
+   "id": "file:backend/app/guardrails.py",
+   "type": "file",
+   "name": "guardrails.py",
+   "summary": "Quality and safety control. check_input blocks prompt injection, steroids, eating-disorder behaviour, off-topic and empty/too-long messages before any AI call; check_output adds allergy, injury and medical warnings.",
+   "tags": [
+    "safety",
+    "quality"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/guardrails.py",
+   "lineRange": [
+    1,
+    184
+   ]
+  },
+  {
+   "id": "file:backend/app/nutrition.py",
+   "type": "file",
+   "name": "nutrition.py",
+   "summary": "Deterministic calculator: Mifflin-St Jeor BMR × activity factor, goal adjustment, calorie floor, protein/carbs/fat and water targets. The AI never computes these numbers.",
+   "tags": [
+    "nutrition",
+    "formula"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/nutrition.py",
+   "lineRange": [
+    1,
+    70
+   ]
+  },
+  {
+   "id": "file:backend/app/schemas.py",
+   "type": "file",
+   "name": "schemas.py",
+   "summary": "Pydantic models that validate every request and response (profile, chat, auth, restaurants, feedback…). Invalid input becomes an HTTP 422 with a clear message.",
+   "tags": [
+    "validation",
+    "pydantic"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/schemas.py",
+   "lineRange": [
+    1,
+    200
+   ]
+  },
+  {
+   "id": "file:backend/app/models.py",
+   "type": "file",
+   "name": "models.py",
+   "summary": "SQLAlchemy tables: User (profile, plan, password hash), Conversation, Message (rating, flags, latency), Feedback.",
+   "tags": [
+    "database",
+    "orm"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/models.py",
+   "lineRange": [
+    1,
+    82
+   ]
+  },
+  {
+   "id": "file:backend/app/db.py",
+   "type": "file",
+   "name": "db.py",
+   "summary": "Database engine and session (SQLite locally or in /tmp on Vercel, any Postgres through DATABASE_URL).",
+   "tags": [
+    "database"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/db.py",
+   "lineRange": [
+    1,
+    52
+   ]
+  },
+  {
+   "id": "file:backend/app/config.py",
+   "type": "file",
+   "name": "config.py",
+   "summary": "Reads every environment variable into one Settings object (provider, models, keys, history window, top-k, CORS…).",
+   "tags": [
+    "config",
+    "env"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/config.py",
+   "lineRange": [
+    1,
+    97
+   ]
+  },
+  {
+   "id": "file:backend/app/email_service.py",
+   "type": "file",
+   "name": "email_service.py",
+   "summary": "Sends 6-digit verification/reset codes through Brevo, Resend or Gmail SMTP, whichever is configured.",
+   "tags": [
+    "email",
+    "auth"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/email_service.py",
+   "lineRange": [
+    1,
+    125
+   ]
+  },
+  {
+   "id": "file:backend/app/places.py",
+   "type": "file",
+   "name": "places.py",
+   "summary": "Optional Google Places (New) search for restaurants with photos, ratings and opening hours, plus AI dish suggestions per place.",
+   "tags": [
+    "restaurants",
+    "external-api"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/places.py",
+   "lineRange": [
+    1,
+    196
+   ]
+  },
+  {
+   "id": "file:backend/api/index.py",
+   "type": "file",
+   "name": "index.py",
+   "summary": "Vercel serverless entry point: exposes the FastAPI app as a Python function.",
+   "tags": [
+    "vercel",
+    "entry-point"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/api/index.py",
+   "lineRange": [
+    1,
+    15
+   ]
+  },
+  {
+   "id": "file:backend/eval/run_eval.py",
+   "type": "file",
+   "name": "run_eval.py",
+   "summary": "Runs the 16-question evaluation set against the chatbot and writes pass rate and latency (results.json / results_mock.json).",
+   "tags": [
+    "evaluation",
+    "quality"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/eval/run_eval.py",
+   "lineRange": [
+    1,
+    94
+   ]
+  },
+  {
+   "id": "file:backend/tests/test_api.py",
+   "type": "file",
+   "name": "test_api.py",
+   "summary": "API tests with FastAPI TestClient: endpoints, guardrails, n8n key protection.",
+   "tags": [
+    "tests"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/tests/test_api.py",
+   "lineRange": [
+    1,
+    139
+   ]
+  },
+  {
+   "id": "file:backend/tests/test_units.py",
+   "type": "file",
+   "name": "test_units.py",
+   "summary": "Unit tests: nutrition maths, BM25, allergen filter, muscle detection, guardrails.",
+   "tags": [
+    "tests"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/tests/test_units.py",
+   "lineRange": [
+    1,
+    152
+   ]
+  },
+  {
+   "id": "file:backend/tests/conftest.py",
+   "type": "file",
+   "name": "conftest.py",
+   "summary": "Test fixtures: temporary SQLite database, mock LLM mode.",
+   "tags": [
+    "tests"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/tests/conftest.py",
+   "lineRange": [
+    1,
+    36
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/coach/page.tsx",
+   "type": "file",
+   "name": "coach/page.tsx",
+   "summary": "The main AI coach page: profile modal, daily targets, conversation list, chat with model picker, photo upload, barcode scanner, sources and ratings, muscle map and exercise demo modal.",
+   "tags": [
+    "ui",
+    "chat",
+    "page"
+   ],
+   "complexity": "complex",
+   "filePath": "frontend/src/app/coach/page.tsx",
+   "lineRange": [
+    1,
+    1165
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/gym/page.tsx",
+   "type": "file",
+   "name": "gym/page.tsx",
+   "summary": "In-gym chrono: 15 workout splits, sets and rest timer, voice cues, \"machine busy → swap\", \"do now\" queue, water tracker.",
+   "tags": [
+    "ui",
+    "page",
+    "workout"
+   ],
+   "complexity": "complex",
+   "filePath": "frontend/src/app/gym/page.tsx",
+   "lineRange": [
+    1,
+    737
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/nutrition/page.tsx",
+   "type": "file",
+   "name": "nutrition/page.tsx",
+   "summary": "Nutrition page: macro targets, AI fridge chef with generated dish image, nearby restaurants (GPS or city), 146 recipes with filters, AI nutritionist chat.",
+   "tags": [
+    "ui",
+    "page",
+    "nutrition"
+   ],
+   "complexity": "complex",
+   "filePath": "frontend/src/app/nutrition/page.tsx",
+   "lineRange": [
+    1,
+    1114
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/login/page.tsx",
+   "type": "file",
+   "name": "login/page.tsx",
+   "summary": "Accounts: create account, e-mail code verification, sign in with e-mail or username, Google sign-in, forgot/reset password.",
+   "tags": [
+    "ui",
+    "page",
+    "auth"
+   ],
+   "complexity": "moderate",
+   "filePath": "frontend/src/app/login/page.tsx",
+   "lineRange": [
+    1,
+    514
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/page.tsx",
+   "type": "file",
+   "name": "app/page.tsx",
+   "summary": "Landing page presenting the product and linking to every feature.",
+   "tags": [
+    "ui",
+    "page"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/app/page.tsx",
+   "lineRange": [
+    1,
+    307
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/pricing/page.tsx",
+   "type": "file",
+   "name": "pricing/page.tsx",
+   "summary": "Free vs Pro plans, monthly/annual toggle, simulated Pro activation.",
+   "tags": [
+    "ui",
+    "page"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/app/pricing/page.tsx",
+   "lineRange": [
+    1,
+    210
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/layout.tsx",
+   "type": "file",
+   "name": "layout.tsx",
+   "summary": "Root layout: fonts (Bricolage Grotesque), global styles, metadata.",
+   "tags": [
+    "ui"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/app/layout.tsx",
+   "lineRange": [
+    1,
+    26
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/terms/page.tsx",
+   "type": "file",
+   "name": "terms/page.tsx",
+   "summary": "Terms page.",
+   "tags": [
+    "ui",
+    "legal"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/app/terms/page.tsx",
+   "lineRange": [
+    1,
+    21
+   ]
+  },
+  {
+   "id": "file:frontend/src/app/privacy/page.tsx",
+   "type": "file",
+   "name": "privacy/page.tsx",
+   "summary": "Privacy policy page.",
+   "tags": [
+    "ui",
+    "legal"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/app/privacy/page.tsx",
+   "lineRange": [
+    1,
+    114
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/MuscleMap.tsx",
+   "type": "file",
+   "name": "MuscleMap.tsx",
+   "summary": "Hand-made front/back SVG body: every muscle is a clickable path that highlights and selects the muscle.",
+   "tags": [
+    "ui",
+    "svg",
+    "muscle-map"
+   ],
+   "complexity": "moderate",
+   "filePath": "frontend/src/components/MuscleMap.tsx",
+   "lineRange": [
+    1,
+    254
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/ProfileModal.tsx",
+   "type": "file",
+   "name": "ProfileModal.tsx",
+   "summary": "Profile form (body data, goal, split, equipment, diet, allergies, injuries) that creates or updates the user.",
+   "tags": [
+    "ui",
+    "form"
+   ],
+   "complexity": "moderate",
+   "filePath": "frontend/src/components/ProfileModal.tsx",
+   "lineRange": [
+    1,
+    402
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/BarcodeScanner.tsx",
+   "type": "file",
+   "name": "BarcodeScanner.tsx",
+   "summary": "Live camera barcode scanner (ZXing WebAssembly, zoom, torch) that returns a product code.",
+   "tags": [
+    "ui",
+    "camera"
+   ],
+   "complexity": "moderate",
+   "filePath": "frontend/src/components/BarcodeScanner.tsx",
+   "lineRange": [
+    1,
+    289
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/FeedbackModal.tsx",
+   "type": "file",
+   "name": "FeedbackModal.tsx",
+   "summary": "\"Report a problem\" dialog that posts to /api/feedback.",
+   "tags": [
+    "ui",
+    "feedback"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/components/FeedbackModal.tsx",
+   "lineRange": [
+    1,
+    112
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/MarkdownText.tsx",
+   "type": "file",
+   "name": "MarkdownText.tsx",
+   "summary": "Small safe Markdown renderer for answers: headings, bold, lists, [S1] source pills.",
+   "tags": [
+    "ui"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/components/MarkdownText.tsx",
+   "lineRange": [
+    1,
+    75
+   ]
+  },
+  {
+   "id": "file:frontend/src/components/Navbar.tsx",
+   "type": "file",
+   "name": "Navbar.tsx",
+   "summary": "Top bar: navigation, daily calories, plan badge, profile, account and Report button.",
+   "tags": [
+    "ui"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/components/Navbar.tsx",
+   "lineRange": [
+    1,
+    128
+   ]
+  },
+  {
+   "id": "file:frontend/src/lib/api.ts",
+   "type": "file",
+   "name": "api.ts",
+   "summary": "Typed client for every backend endpoint; all calls go to /api/* which Next.js forwards to FastAPI.",
+   "tags": [
+    "api-client"
+   ],
+   "complexity": "moderate",
+   "filePath": "frontend/src/lib/api.ts",
+   "lineRange": [
+    1,
+    237
+   ]
+  },
+  {
+   "id": "file:frontend/src/lib/types.ts",
+   "type": "file",
+   "name": "types.ts",
+   "summary": "TypeScript types mirroring the backend schemas.",
+   "tags": [
+    "types"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/src/lib/types.ts",
+   "lineRange": [
+    1,
+    285
+   ]
+  },
+  {
+   "id": "document:README.md",
+   "type": "document",
+   "name": "README.md",
+   "summary": "How to install, run and test the project.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "README.md"
+  },
+  {
+   "id": "document:PROJECT_CONTEXT.md",
+   "type": "document",
+   "name": "PROJECT_CONTEXT.md",
+   "summary": "Single source of truth: scope, decisions T1–T14, API contract and changelog.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "PROJECT_CONTEXT.md"
+  },
+  {
+   "id": "document:docs/REPORT.md",
+   "type": "document",
+   "name": "REPORT.md",
+   "summary": "Engineering report following the teacher's 7 steps, with the requirements traceability annex.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "docs/REPORT.md"
+  },
+  {
+   "id": "document:docs/USER_GUIDE.md",
+   "type": "document",
+   "name": "USER_GUIDE.md",
+   "summary": "User guide for every page and the evaluator checklist.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "docs/USER_GUIDE.md"
+  },
+  {
+   "id": "document:docs/TEST_PLAN.md",
+   "type": "document",
+   "name": "TEST_PLAN.md",
+   "summary": "Test levels and the latest measured results (pytest, evaluation, end-to-end).",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "docs/TEST_PLAN.md"
+  },
+  {
+   "id": "document:docs/DEPLOYMENT.md",
+   "type": "document",
+   "name": "DEPLOYMENT.md",
+   "summary": "Deployment strategy on Vercel, env variables, rollback and monitoring.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "docs/DEPLOYMENT.md"
+  },
+  {
+   "id": "document:automation/README.md",
+   "type": "document",
+   "name": "README.md",
+   "summary": "n8n automation: architecture, credentials registry, install steps, transferability test.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "automation/README.md"
+  },
+  {
+   "id": "document:automation/TELEGRAM_COACH.md",
+   "type": "document",
+   "name": "TELEGRAM_COACH.md",
+   "summary": "Telegram coach workflow: commands, schedules and setup.",
+   "tags": [
+    "docs"
+   ],
+   "complexity": "simple",
+   "filePath": "automation/TELEGRAM_COACH.md"
+  },
+  {
+   "id": "config:backend/vercel.json",
+   "type": "config",
+   "name": "vercel.json",
+   "summary": "Vercel config for the API: all routes to api/index.py, 60 s max duration.",
+   "tags": [
+    "config"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/vercel.json"
+  },
+  {
+   "id": "config:frontend/next.config.mjs",
+   "type": "config",
+   "name": "next.config.mjs",
+   "summary": "Next.js config: forwards /api/* to the backend, 120 s proxy timeout.",
+   "tags": [
+    "config"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/next.config.mjs"
+  },
+  {
+   "id": "config:backend/requirements.txt",
+   "type": "config",
+   "name": "requirements.txt",
+   "summary": "Python dependencies (FastAPI, SQLAlchemy, httpx…).",
+   "tags": [
+    "config"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/requirements.txt"
+  },
+  {
+   "id": "config:frontend/package.json",
+   "type": "config",
+   "name": "package.json",
+   "summary": "Node dependencies and scripts (Next.js, React, barcode-detector).",
+   "tags": [
+    "config"
+   ],
+   "complexity": "simple",
+   "filePath": "frontend/package.json"
+  },
+  {
+   "id": "config:backend/.env.example",
+   "type": "config",
+   "name": ".env.example",
+   "summary": "List of backend environment variables, without values.",
+   "tags": [
+    "config"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/.env.example"
+  },
+  {
+   "id": "config:backend/app/data/exercises.json",
+   "type": "config",
+   "name": "exercises.json",
+   "summary": "55 exercises with muscles, equipment, sets/reps, GIF and EN/FR steps.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/exercises.json"
+  },
+  {
+   "id": "config:backend/app/data/foods.json",
+   "type": "config",
+   "name": "foods.json",
+   "summary": "44 foods with macros.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/foods.json"
+  },
+  {
+   "id": "config:backend/app/data/recipes.json",
+   "type": "config",
+   "name": "recipes.json",
+   "summary": "147 recipes with macros, price and diet tags.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/recipes.json"
+  },
+  {
+   "id": "config:backend/app/data/principles.json",
+   "type": "config",
+   "name": "principles.json",
+   "summary": "20 training and nutrition principles.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/principles.json"
+  },
+  {
+   "id": "config:backend/app/data/equipment.json",
+   "type": "config",
+   "name": "equipment.json",
+   "summary": "15 gym machines for the vision scanner.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/equipment.json"
+  },
+  {
+   "id": "config:backend/app/data/muscles.json",
+   "type": "config",
+   "name": "muscles.json",
+   "summary": "15 muscles of the body map (id, names, view).",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/data/muscles.json"
+  },
+  {
+   "id": "config:backend/eval/questions.json",
+   "type": "config",
+   "name": "questions.json",
+   "summary": "16 evaluation questions with expected keywords and checks.",
+   "tags": [
+    "data",
+    "knowledge-base"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/eval/questions.json"
+  },
+  {
+   "id": "pipeline:automation/workflow_daily_coach.json",
+   "type": "pipeline",
+   "name": "workflow_daily_coach.json",
+   "summary": "n8n: daily schedule → /api/automation/daily-digest → LLM writes each coaching message → e-mail.",
+   "tags": [
+    "n8n",
+    "automation"
+   ],
+   "complexity": "moderate",
+   "filePath": "automation/workflow_daily_coach.json"
+  },
+  {
+   "id": "pipeline:automation/workflow_gymbuddy_crm.json",
+   "type": "pipeline",
+   "name": "workflow_gymbuddy_crm.json",
+   "summary": "n8n CRM: lead scoring, Google Sheets upsert, segmented AI e-mails, admin KPI digest.",
+   "tags": [
+    "n8n",
+    "automation"
+   ],
+   "complexity": "moderate",
+   "filePath": "automation/workflow_gymbuddy_crm.json"
+  },
+  {
+   "id": "pipeline:automation/workflow_telegram_coach.json",
+   "type": "pipeline",
+   "name": "workflow_telegram_coach.json",
+   "summary": "n8n Telegram bot: /today /workout /eat /log /report, AI briefs and weekly recap.",
+   "tags": [
+    "n8n",
+    "automation"
+   ],
+   "complexity": "moderate",
+   "filePath": "automation/workflow_telegram_coach.json"
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/health",
+   "type": "endpoint",
+   "name": "GET /api/health",
+   "summary": "health",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    213,
+    231
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/models",
+   "type": "endpoint",
+   "name": "GET /api/models",
+   "summary": "list models",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    235,
+    240
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/register",
+   "type": "endpoint",
+   "name": "POST /api/auth/register",
+   "summary": "auth register",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    244,
+    272
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/verify-email",
+   "type": "endpoint",
+   "name": "POST /api/auth/verify-email",
+   "summary": "auth verify email",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    276,
+    291
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/login",
+   "type": "endpoint",
+   "name": "POST /api/auth/login",
+   "summary": "auth login",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    295,
+    306
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/google",
+   "type": "endpoint",
+   "name": "POST /api/auth/google",
+   "summary": "Sign in or create an account via Google OAuth token or Google Account Chooser.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    310,
+    389
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/forgot-password",
+   "type": "endpoint",
+   "name": "POST /api/auth/forgot-password",
+   "summary": "Generate and email a 6-digit password reset code valid for 15 minutes.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    393,
+    416
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/auth/reset-password",
+   "type": "endpoint",
+   "name": "POST /api/auth/reset-password",
+   "summary": "reset password",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    420,
+    437
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/nutrition/overview",
+   "type": "endpoint",
+   "name": "GET /api/nutrition/overview",
+   "summary": "Return personalized macro targets + allergen/diet-filtered recipes, add-ons, currencies & foods.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    464,
+    491
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/restaurants/photo",
+   "type": "endpoint",
+   "name": "GET /api/restaurants/photo",
+   "summary": "Redirect to a Google Places photo without exposing the API key to the browser.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    719,
+    724
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+   "type": "endpoint",
+   "name": "POST /api/restaurants/nearby",
+   "summary": "Find real nearby restaurants with OpenStreetMap (Overpass + Nominatim), rank the healthiest first and",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    728,
+    796
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/nutrition/fridge-meals",
+   "type": "endpoint",
+   "name": "POST /api/nutrition/fridge-meals",
+   "summary": "Generate step-by-step meals from home ingredients + generate a dish photo via Recraft.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    800,
+    803
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/users/{user_id}/plan",
+   "type": "endpoint",
+   "name": "POST /api/users/{user_id}/plan",
+   "summary": "set user plan",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    807,
+    811
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/workouts/session",
+   "type": "endpoint",
+   "name": "GET /api/workouts/session",
+   "summary": "Build a ready-to-run gym session with alternatives for 'Equipment Busy -> Swap'.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    834,
+    882
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/users",
+   "type": "endpoint",
+   "name": "POST /api/users",
+   "summary": "create user",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    886,
+    893
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/users/{user_id}",
+   "type": "endpoint",
+   "name": "GET /api/users/{user_id}",
+   "summary": "get user",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    897,
+    898
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:PUT /api/users/{user_id}",
+   "type": "endpoint",
+   "name": "PUT /api/users/{user_id}",
+   "summary": "update user",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    902,
+    909
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/muscles",
+   "type": "endpoint",
+   "name": "GET /api/muscles",
+   "summary": "list muscles",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    913,
+    917
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/muscles/{muscle_id}/exercises",
+   "type": "endpoint",
+   "name": "GET /api/muscles/{muscle_id}/exercises",
+   "summary": "muscle exercises",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    921,
+    929
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/chat",
+   "type": "endpoint",
+   "name": "POST /api/chat",
+   "summary": "chat",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    933,
+    964
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/equipment/identify",
+   "type": "endpoint",
+   "name": "POST /api/equipment/identify",
+   "summary": "identify equipment",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    968,
+    1004
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/users/{user_id}/conversations",
+   "type": "endpoint",
+   "name": "GET /api/users/{user_id}/conversations",
+   "summary": "list conversations",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1008,
+    1011
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/conversations/{conversation_id}/messages",
+   "type": "endpoint",
+   "name": "GET /api/conversations/{conversation_id}/messages",
+   "summary": "conversation messages",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1015,
+    1023
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:DELETE /api/conversations/{conversation_id}",
+   "type": "endpoint",
+   "name": "DELETE /api/conversations/{conversation_id}",
+   "summary": "delete conversation",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1027,
+    1033
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/messages/{message_id}/rating",
+   "type": "endpoint",
+   "name": "POST /api/messages/{message_id}/rating",
+   "summary": "rate message",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1037,
+    1043
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:POST /api/feedback",
+   "type": "endpoint",
+   "name": "POST /api/feedback",
+   "summary": "send feedback",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1047,
+    1052
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/automation/daily-digest",
+   "type": "endpoint",
+   "name": "GET /api/automation/daily-digest",
+   "summary": "daily digest",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1063,
+    1073
+   ]
+  },
+  {
+   "id": "endpoint:backend/app/main.py:GET /api/admin/stats",
+   "type": "endpoint",
+   "name": "GET /api/admin/stats",
+   "summary": "Usage numbers for the report (step 6): messages, ratings, flags, latency, feedback.",
+   "tags": [
+    "http"
+   ],
+   "complexity": "simple",
+   "filePath": "backend/app/main.py",
+   "lineRange": [
+    1077,
+    1095
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:build_retrieval_query",
+   "type": "function",
+   "name": "build_retrieval_query",
+   "summary": "Expands short follow-ups with the previous question.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    95,
+    101
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:mock_generate",
+   "type": "function",
+   "name": "mock_generate",
+   "summary": "Offline composer: builds an answer from the retrieved documents when no model is reachable.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    132,
+    186
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:answer",
+   "type": "function",
+   "name": "answer",
+   "summary": "Main pipeline for one chat message (guardrails → retrieval → LLM → checks → sources).",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    191,
+    287
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:fridge_meals",
+   "type": "function",
+   "name": "fridge_meals",
+   "summary": "Meals from home ingredients + dish image.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    290,
+    335
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:lookup_barcode_yuka",
+   "type": "function",
+   "name": "lookup_barcode_yuka",
+   "summary": "Open Food Facts lookup and health score.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    359,
+    445
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:identify_equipment",
+   "type": "function",
+   "name": "identify_equipment",
+   "summary": "Vision scanner: machine, plate or barcode from a photo.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    472,
+    574
+   ]
+  },
+  {
+   "id": "function:backend/app/chatbot.py:daily_message",
+   "type": "function",
+   "name": "daily_message",
+   "summary": "Data for the n8n daily coaching message.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/chatbot.py",
+   "lineRange": [
+    577,
+    602
+   ]
+  },
+  {
+   "id": "function:backend/app/llm.py:_call_once",
+   "type": "function",
+   "name": "_call_once",
+   "summary": "One HTTP call with a reasoning-token budget.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    65,
+    92
+   ]
+  },
+  {
+   "id": "function:backend/app/llm.py:candidate_models",
+   "type": "function",
+   "name": "candidate_models",
+   "summary": "Chosen model first, then the fallbacks.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    95,
+    102
+   ]
+  },
+  {
+   "id": "function:backend/app/llm.py:chat_with_model",
+   "type": "function",
+   "name": "chat_with_model",
+   "summary": "Tries each candidate model in order and returns the answer and the model that wrote it.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    110,
+    138
+   ]
+  },
+  {
+   "id": "function:backend/app/llm.py:chat_vision",
+   "type": "function",
+   "name": "chat_vision",
+   "summary": "Call a vision model.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    149,
+    165
+   ]
+  },
+  {
+   "id": "function:backend/app/llm.py:generate_meal_image",
+   "type": "function",
+   "name": "generate_meal_image",
+   "summary": "Generate a dish photo.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/llm.py",
+   "lineRange": [
+    188,
+    190
+   ]
+  },
+  {
+   "id": "function:backend/app/retrieval.py:all_docs",
+   "type": "function",
+   "name": "all_docs",
+   "summary": "Builds the 281 documents from the JSON files.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    157,
+    174
+   ]
+  },
+  {
+   "id": "class:backend/app/retrieval.py:BM25",
+   "type": "class",
+   "name": "BM25",
+   "summary": "The ranking class.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    177,
+    198
+   ]
+  },
+  {
+   "id": "function:backend/app/retrieval.py:detect_muscle",
+   "type": "function",
+   "name": "detect_muscle",
+   "summary": "Longest alias match of a muscle name in EN/FR text.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    206,
+    217
+   ]
+  },
+  {
+   "id": "function:backend/app/retrieval.py:search",
+   "type": "function",
+   "name": "search",
+   "summary": "BM25 top-k with muscle boost, equipment and allergen filters.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    220,
+    244
+   ]
+  },
+  {
+   "id": "function:backend/app/retrieval.py:exercises_for",
+   "type": "function",
+   "name": "exercises_for",
+   "summary": "Exercises for a muscle and equipment.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/retrieval.py",
+   "lineRange": [
+    247,
+    258
+   ]
+  },
+  {
+   "id": "function:backend/app/guardrails.py:check_input",
+   "type": "function",
+   "name": "check_input",
+   "summary": "Blocks unsafe or off-topic input before the AI.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/guardrails.py",
+   "lineRange": [
+    110,
+    144
+   ]
+  },
+  {
+   "id": "function:backend/app/guardrails.py:check_output",
+   "type": "function",
+   "name": "check_output",
+   "summary": "Adds allergy, injury and medical warnings after the AI.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/guardrails.py",
+   "lineRange": [
+    147,
+    184
+   ]
+  },
+  {
+   "id": "function:backend/app/nutrition.py:bmr",
+   "type": "function",
+   "name": "bmr",
+   "summary": "Mifflin-St Jeor basal metabolic rate.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/nutrition.py",
+   "lineRange": [
+    32,
+    34
+   ]
+  },
+  {
+   "id": "function:backend/app/nutrition.py:compute_targets",
+   "type": "function",
+   "name": "compute_targets",
+   "summary": "Daily calories, macros and water from the profile.",
+   "tags": [
+    "core"
+   ],
+   "complexity": "moderate",
+   "filePath": "backend/app/nutrition.py",
+   "lineRange": [
+    37,
+    70
+   ]
+  },
+  {
+   "id": "service:vercel-frontend",
+   "type": "service",
+   "name": "Vercel: gymbuddy-ai",
+   "summary": "Hosts the Next.js platform at https://gymbuddy-ai-phi.vercel.app.",
+   "tags": [
+    "deploy"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "service:vercel-backend",
+   "type": "service",
+   "name": "Vercel: gymbuddy-api",
+   "summary": "Hosts the FastAPI app as a serverless Python function.",
+   "tags": [
+    "deploy"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "concept:openrouter",
+   "type": "concept",
+   "name": "OpenRouter models",
+   "summary": "External LLM gateway: Auto router + Gemma 4 31B/26B + Nemotron 3.5 Super VL / Lightning / 3 Ultra, plus Recraft for images.",
+   "tags": [
+    "external",
+    "llm"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "concept:open-food-facts",
+   "type": "concept",
+   "name": "Open Food Facts",
+   "summary": "Public product database used for barcodes.",
+   "tags": [
+    "external"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "concept:openstreetmap",
+   "type": "concept",
+   "name": "OpenStreetMap / Overpass",
+   "summary": "Public map data used for nearby restaurants.",
+   "tags": [
+    "external"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "concept:rag",
+   "type": "concept",
+   "name": "RAG + deterministic tools",
+   "summary": "Generation strategy: answers are grounded in retrieved documents and cite them; numbers come from code.",
+   "tags": [
+    "concept"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "concept:context-window",
+   "type": "concept",
+   "name": "Context management",
+   "summary": "Profile + targets + selected muscle + last 10 messages + retrieved docs go into each prompt; older messages drop out.",
+   "tags": [
+    "concept"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/health",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/models",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/register",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/verify-email",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/login",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/google",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/forgot-password",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/reset-password",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/nutrition/overview",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/restaurants/photo",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/nutrition/fridge-meals",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/users/{user_id}/plan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/workouts/session",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/users",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/users/{user_id}",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:PUT /api/users/{user_id}",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/muscles",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/muscles/{muscle_id}/exercises",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/chat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/equipment/identify",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/users/{user_id}/conversations",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/conversations/{conversation_id}/messages",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:DELETE /api/conversations/{conversation_id}",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/messages/{message_id}/rating",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:POST /api/feedback",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/automation/daily-digest",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "endpoint:backend/app/main.py:GET /api/admin/stats",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:build_retrieval_query",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:mock_generate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:answer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:fridge_meals",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:lookup_barcode_yuka",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:identify_equipment",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "function:backend/app/chatbot.py:daily_message",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "function:backend/app/llm.py:_call_once",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "function:backend/app/llm.py:candidate_models",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "function:backend/app/llm.py:chat_with_model",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "function:backend/app/llm.py:chat_vision",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "function:backend/app/llm.py:generate_meal_image",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "function:backend/app/retrieval.py:all_docs",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "class:backend/app/retrieval.py:BM25",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "function:backend/app/retrieval.py:detect_muscle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "function:backend/app/retrieval.py:search",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "function:backend/app/retrieval.py:exercises_for",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/guardrails.py",
+   "target": "function:backend/app/guardrails.py:check_input",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/guardrails.py",
+   "target": "function:backend/app/guardrails.py:check_output",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/nutrition.py",
+   "target": "function:backend/app/nutrition.py:bmr",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/nutrition.py",
+   "target": "function:backend/app/nutrition.py:compute_targets",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/chatbot.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/email_service.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/retrieval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/places.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/db.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/models.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/nutrition.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/guardrails.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/retrieval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/nutrition.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/llm.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/guardrails.py",
+   "target": "file:backend/app/retrieval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/guardrails.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/nutrition.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/models.py",
+   "target": "file:backend/app/db.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/db.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/db.py",
+   "target": "file:backend/app/models.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/email_service.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/places.py",
+   "target": "file:backend/app/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/app/places.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/api/index.py",
+   "target": "file:backend/app/db.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/api/index.py",
+   "target": "file:backend/app/main.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/eval/run_eval.py",
+   "target": "file:backend/app/chatbot.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/eval/run_eval.py",
+   "target": "file:backend/app/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/eval/run_eval.py",
+   "target": "file:backend/app/retrieval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/eval/run_eval.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_api.py",
+   "target": "file:backend/app/main.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_api.py",
+   "target": "file:backend/app/places.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/guardrails.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/retrieval.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/nutrition.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/schemas.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/llm.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/test_units.py",
+   "target": "file:backend/app/config.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/conftest.py",
+   "target": "file:backend/app/db.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend/tests/conftest.py",
+   "target": "file:backend/app/main.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "endpoint:backend/app/main.py:POST /api/chat",
+   "target": "function:backend/app/chatbot.py:answer",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "each chat message"
+  },
+  {
+   "source": "endpoint:backend/app/main.py:POST /api/equipment/identify",
+   "target": "function:backend/app/chatbot.py:identify_equipment",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "photo or barcode"
+  },
+  {
+   "source": "endpoint:backend/app/main.py:POST /api/nutrition/fridge-meals",
+   "target": "function:backend/app/chatbot.py:fridge_meals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "endpoint:backend/app/main.py:GET /api/automation/daily-digest",
+   "target": "function:backend/app/chatbot.py:daily_message",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/guardrails.py:check_input",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "1. block unsafe input"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/retrieval.py:detect_muscle",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "2. find the muscle"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/chatbot.py:build_retrieval_query",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "3. expand follow-ups"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/retrieval.py:search",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "4. retrieve top-k documents"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/llm.py:chat_with_model",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "5. generate with the chosen model"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/chatbot.py:mock_generate",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "5b. offline fallback"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/guardrails.py:check_output",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "6. add warnings"
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "function:backend/app/nutrition.py:compute_targets",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8,
+   "description": "targets in the prompt"
+  },
+  {
+   "source": "function:backend/app/llm.py:chat_with_model",
+   "target": "function:backend/app/llm.py:candidate_models",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/llm.py:chat_with_model",
+   "target": "function:backend/app/llm.py:_call_once",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:identify_equipment",
+   "target": "function:backend/app/llm.py:chat_vision",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:identify_equipment",
+   "target": "function:backend/app/chatbot.py:lookup_barcode_yuka",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:fridge_meals",
+   "target": "function:backend/app/llm.py:generate_meal_image",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/nutrition.py:compute_targets",
+   "target": "function:backend/app/nutrition.py:bmr",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/retrieval.py:search",
+   "target": "class:backend/app/retrieval.py:BM25",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/exercises.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/exercises.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/foods.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/foods.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/recipes.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/recipes.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/principles.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/principles.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/equipment.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/equipment.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/retrieval.py:all_docs",
+   "target": "config:backend/app/data/muscles.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "config:backend/app/data/muscles.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/MuscleMap.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/BarcodeScanner.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/ProfileModal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/FeedbackModal.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/MarkdownText.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/coach/page.tsx",
+   "target": "file:frontend/src/components/Navbar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/gym/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/gym/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/gym/page.tsx",
+   "target": "file:frontend/src/components/Navbar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/nutrition/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/nutrition/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/nutrition/page.tsx",
+   "target": "file:frontend/src/components/Navbar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/nutrition/page.tsx",
+   "target": "file:frontend/src/components/MarkdownText.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/login/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/login/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/page.tsx",
+   "target": "file:frontend/src/components/Navbar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/pricing/page.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/pricing/page.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/app/pricing/page.tsx",
+   "target": "file:frontend/src/components/Navbar.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/ProfileModal.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/FeedbackModal.tsx",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/components/Navbar.tsx",
+   "target": "file:frontend/src/lib/types.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/health",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/models",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/register",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/verify-email",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/login",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/google",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/forgot-password",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/auth/reset-password",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/nutrition/overview",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/nutrition/fridge-meals",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/users",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/workouts/session",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/muscles",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/chat",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/equipment/identify",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/feedback",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/users/{user_id}/plan",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/users/{user_id}",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:PUT /api/users/{user_id}",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/users/{user_id}/conversations",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:GET /api/conversations/{conversation_id}/messages",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:DELETE /api/conversations/{conversation_id}",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:frontend/src/lib/api.ts",
+   "target": "endpoint:backend/app/main.py:POST /api/messages/{message_id}/rating",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "service:vercel-frontend",
+   "target": "file:frontend/src/app/coach/page.tsx",
+   "type": "serves",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "service:vercel-backend",
+   "target": "file:backend/api/index.py",
+   "type": "deploys",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "config:backend/vercel.json",
+   "target": "service:vercel-backend",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/next.config.mjs",
+   "target": "service:vercel-frontend",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:frontend/next.config.mjs",
+   "target": "file:frontend/src/lib/api.ts",
+   "type": "routes",
+   "direction": "forward",
+   "weight": 0.5,
+   "description": "/api/* → FastAPI"
+  },
+  {
+   "source": "function:backend/app/llm.py:_call_once",
+   "target": "concept:openrouter",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:lookup_barcode_yuka",
+   "target": "concept:open-food-facts",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+   "target": "concept:openstreetmap",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+   "target": "file:backend/app/places.py",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "concept:rag",
+   "type": "implements",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "concept:context-window",
+   "type": "implements",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/config.py",
+   "target": "file:backend/app/llm.py",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/tests/test_api.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/main.py",
+   "target": "file:backend/tests/test_units.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/chatbot.py",
+   "target": "file:backend/tests/test_units.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/guardrails.py",
+   "target": "file:backend/tests/test_units.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/retrieval.py",
+   "target": "file:backend/tests/test_units.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/app/nutrition.py",
+   "target": "file:backend/tests/test_units.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "function:backend/app/chatbot.py:answer",
+   "target": "file:backend/eval/run_eval.py",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend/eval/run_eval.py",
+   "target": "config:backend/eval/questions.json",
+   "type": "reads_from",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "pipeline:automation/workflow_daily_coach.json",
+   "target": "endpoint:backend/app/main.py:GET /api/automation/daily-digest",
+   "type": "triggers",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "pipeline:automation/workflow_gymbuddy_crm.json",
+   "target": "endpoint:backend/app/main.py:POST /api/chat",
+   "type": "triggers",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "pipeline:automation/workflow_telegram_coach.json",
+   "target": "endpoint:backend/app/main.py:POST /api/chat",
+   "type": "triggers",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:docs/REPORT.md",
+   "target": "file:backend/app/chatbot.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/REPORT.md",
+   "target": "concept:rag",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/DEPLOYMENT.md",
+   "target": "service:vercel-backend",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/DEPLOYMENT.md",
+   "target": "service:vercel-frontend",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/TEST_PLAN.md",
+   "target": "file:backend/tests/test_api.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/TEST_PLAN.md",
+   "target": "file:backend/eval/run_eval.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/USER_GUIDE.md",
+   "target": "file:frontend/src/app/coach/page.tsx",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:automation/README.md",
+   "target": "pipeline:automation/workflow_daily_coach.json",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:automation/README.md",
+   "target": "pipeline:automation/workflow_gymbuddy_crm.json",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:automation/TELEGRAM_COACH.md",
+   "target": "pipeline:automation/workflow_telegram_coach.json",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:PROJECT_CONTEXT.md",
+   "target": "file:backend/app/main.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:README.md",
+   "target": "file:backend/app/main.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:README.md",
+   "target": "file:frontend/src/app/coach/page.tsx",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ],
+ "layers": [
+  {
+   "id": "layer:ui",
+   "name": "Platform UI (Next.js)",
+   "description": "Pages and components the user clicks.",
+   "nodeIds": [
+    "file:frontend/src/app/coach/page.tsx",
+    "file:frontend/src/app/gym/page.tsx",
+    "file:frontend/src/app/nutrition/page.tsx",
+    "file:frontend/src/app/login/page.tsx",
+    "file:frontend/src/app/page.tsx",
+    "file:frontend/src/app/pricing/page.tsx",
+    "file:frontend/src/app/layout.tsx",
+    "file:frontend/src/app/terms/page.tsx",
+    "file:frontend/src/app/privacy/page.tsx",
+    "file:frontend/src/components/MuscleMap.tsx",
+    "file:frontend/src/components/ProfileModal.tsx",
+    "file:frontend/src/components/BarcodeScanner.tsx",
+    "file:frontend/src/components/FeedbackModal.tsx",
+    "file:frontend/src/components/MarkdownText.tsx",
+    "file:frontend/src/components/Navbar.tsx"
+   ]
+  },
+  {
+   "id": "layer:client",
+   "name": "API client & config",
+   "description": "Typed calls to the backend and the /api proxy.",
+   "nodeIds": [
+    "file:frontend/src/lib/api.ts",
+    "file:frontend/src/lib/types.ts",
+    "config:frontend/next.config.mjs",
+    "config:frontend/package.json"
+   ]
+  },
+  {
+   "id": "layer:api",
+   "name": "HTTP API (FastAPI)",
+   "description": "Routes, validation and auth.",
+   "nodeIds": [
+    "file:backend/app/main.py",
+    "file:backend/app/schemas.py",
+    "file:backend/app/email_service.py",
+    "file:backend/api/index.py",
+    "endpoint:backend/app/main.py:GET /api/health",
+    "endpoint:backend/app/main.py:GET /api/models",
+    "endpoint:backend/app/main.py:POST /api/auth/register",
+    "endpoint:backend/app/main.py:POST /api/auth/verify-email",
+    "endpoint:backend/app/main.py:POST /api/auth/login",
+    "endpoint:backend/app/main.py:POST /api/auth/google",
+    "endpoint:backend/app/main.py:POST /api/auth/forgot-password",
+    "endpoint:backend/app/main.py:POST /api/auth/reset-password",
+    "endpoint:backend/app/main.py:GET /api/nutrition/overview",
+    "endpoint:backend/app/main.py:GET /api/restaurants/photo",
+    "endpoint:backend/app/main.py:POST /api/restaurants/nearby",
+    "endpoint:backend/app/main.py:POST /api/nutrition/fridge-meals",
+    "endpoint:backend/app/main.py:POST /api/users/{user_id}/plan",
+    "endpoint:backend/app/main.py:GET /api/workouts/session",
+    "endpoint:backend/app/main.py:POST /api/users",
+    "endpoint:backend/app/main.py:GET /api/users/{user_id}",
+    "endpoint:backend/app/main.py:PUT /api/users/{user_id}",
+    "endpoint:backend/app/main.py:GET /api/muscles",
+    "endpoint:backend/app/main.py:GET /api/muscles/{muscle_id}/exercises",
+    "endpoint:backend/app/main.py:POST /api/chat",
+    "endpoint:backend/app/main.py:POST /api/equipment/identify",
+    "endpoint:backend/app/main.py:GET /api/users/{user_id}/conversations",
+    "endpoint:backend/app/main.py:GET /api/conversations/{conversation_id}/messages",
+    "endpoint:backend/app/main.py:DELETE /api/conversations/{conversation_id}",
+    "endpoint:backend/app/main.py:POST /api/messages/{message_id}/rating",
+    "endpoint:backend/app/main.py:POST /api/feedback",
+    "endpoint:backend/app/main.py:GET /api/automation/daily-digest",
+    "endpoint:backend/app/main.py:GET /api/admin/stats"
+   ]
+  },
+  {
+   "id": "layer:chatbot",
+   "name": "Chatbot core",
+   "description": "Guardrails, retrieval, LLM, nutrition maths.",
+   "nodeIds": [
+    "file:backend/app/chatbot.py",
+    "file:backend/app/llm.py",
+    "file:backend/app/retrieval.py",
+    "file:backend/app/guardrails.py",
+    "file:backend/app/nutrition.py",
+    "file:backend/app/places.py",
+    "function:backend/app/chatbot.py:build_retrieval_query",
+    "function:backend/app/chatbot.py:mock_generate",
+    "function:backend/app/chatbot.py:answer",
+    "function:backend/app/chatbot.py:fridge_meals",
+    "function:backend/app/chatbot.py:lookup_barcode_yuka",
+    "function:backend/app/chatbot.py:identify_equipment",
+    "function:backend/app/chatbot.py:daily_message",
+    "function:backend/app/llm.py:_call_once",
+    "function:backend/app/llm.py:candidate_models",
+    "function:backend/app/llm.py:chat_with_model",
+    "function:backend/app/llm.py:chat_vision",
+    "function:backend/app/llm.py:generate_meal_image",
+    "function:backend/app/retrieval.py:all_docs",
+    "class:backend/app/retrieval.py:BM25",
+    "function:backend/app/retrieval.py:detect_muscle",
+    "function:backend/app/retrieval.py:search",
+    "function:backend/app/retrieval.py:exercises_for",
+    "function:backend/app/guardrails.py:check_input",
+    "function:backend/app/guardrails.py:check_output",
+    "function:backend/app/nutrition.py:bmr",
+    "function:backend/app/nutrition.py:compute_targets",
+    "concept:rag",
+    "concept:context-window"
+   ]
+  },
+  {
+   "id": "layer:data",
+   "name": "Data & knowledge base",
+   "description": "Database tables and the curated JSON knowledge base.",
+   "nodeIds": [
+    "file:backend/app/models.py",
+    "file:backend/app/db.py",
+    "file:backend/app/config.py",
+    "config:backend/requirements.txt",
+    "config:backend/.env.example",
+    "config:backend/app/data/exercises.json",
+    "config:backend/app/data/foods.json",
+    "config:backend/app/data/recipes.json",
+    "config:backend/app/data/principles.json",
+    "config:backend/app/data/equipment.json",
+    "config:backend/app/data/muscles.json"
+   ]
+  },
+  {
+   "id": "layer:quality",
+   "name": "Tests & evaluation",
+   "description": "pytest suites and the 16-question evaluation.",
+   "nodeIds": [
+    "file:backend/eval/run_eval.py",
+    "file:backend/tests/test_api.py",
+    "file:backend/tests/test_units.py",
+    "file:backend/tests/conftest.py",
+    "config:backend/eval/questions.json"
+   ]
+  },
+  {
+   "id": "layer:external",
+   "name": "External services & deployment",
+   "description": "Hosting, AI models and public data APIs.",
+   "nodeIds": [
+    "config:backend/vercel.json",
+    "service:vercel-frontend",
+    "service:vercel-backend",
+    "concept:openrouter",
+    "concept:open-food-facts",
+    "concept:openstreetmap"
+   ]
+  },
+  {
+   "id": "layer:automation",
+   "name": "n8n automation",
+   "description": "Scheduled and chat workflows that call the API.",
+   "nodeIds": [
+    "pipeline:automation/workflow_daily_coach.json",
+    "pipeline:automation/workflow_gymbuddy_crm.json",
+    "pipeline:automation/workflow_telegram_coach.json"
+   ]
+  },
+  {
+   "id": "layer:docs",
+   "name": "Documentation",
+   "description": "Report, guides and decisions.",
+   "nodeIds": [
+    "document:README.md",
+    "document:PROJECT_CONTEXT.md",
+    "document:docs/REPORT.md",
+    "document:docs/USER_GUIDE.md",
+    "document:docs/TEST_PLAN.md",
+    "document:docs/DEPLOYMENT.md",
+    "document:automation/README.md",
+    "document:automation/TELEGRAM_COACH.md"
+   ]
+  }
+ ],
+ "tour": [
+  {
+   "order": 1,
+   "title": "The problem and the product",
+   "description": "Gym beginners piece advice together from videos, forums and several apps; generic chatbots ignore their body, equipment, diet and injuries. GymBuddy AI is one web platform built around a coach chatbot that knows your profile. Start with the README and the project context.",
+   "nodeIds": [
+    "document:README.md",
+    "document:PROJECT_CONTEXT.md"
+   ]
+  },
+  {
+   "order": 2,
+   "title": "What the user sees",
+   "description": "The /coach page is the heart: daily targets on the left, the chat in the middle, the clickable muscle map on the right. Other pages add the in-gym chrono, nutrition and accounts.",
+   "nodeIds": [
+    "file:frontend/src/app/coach/page.tsx",
+    "file:frontend/src/components/MuscleMap.tsx",
+    "file:frontend/src/app/gym/page.tsx",
+    "file:frontend/src/app/nutrition/page.tsx"
+   ]
+  },
+  {
+   "order": 3,
+   "title": "From the browser to the API",
+   "description": "Every call goes through api.ts to /api/*. Next.js forwards it to FastAPI, so the browser never sees an API key and there is no CORS issue.",
+   "nodeIds": [
+    "file:frontend/src/lib/api.ts",
+    "config:frontend/next.config.mjs",
+    "file:backend/app/main.py"
+   ]
+  },
+  {
+   "order": 4,
+   "title": "One chat message, step by step",
+   "description": "POST /api/chat calls chatbot.answer(): (1) input guardrails, (2) detect the muscle, (3) keep the last 10 messages and expand short follow-ups, (4) BM25 retrieval, (5) the LLM writes the answer, (6) output warnings, then sources are attached.",
+   "nodeIds": [
+    "endpoint:backend/app/main.py:POST /api/chat",
+    "function:backend/app/chatbot.py:answer"
+   ]
+  },
+  {
+   "order": 5,
+   "title": "Quality control: guardrails",
+   "description": "check_input stops prompt injection, steroids, starvation diets and off-topic requests before any AI call. check_output adds allergy, injury and medical warnings after it.",
+   "nodeIds": [
+    "function:backend/app/guardrails.py:check_input",
+    "function:backend/app/guardrails.py:check_output"
+   ]
+  },
+  {
+   "order": 6,
+   "title": "Grounding: retrieval over our own knowledge base",
+   "description": "281 documents built from the JSON files are ranked with BM25, boosted by the selected muscle, filtered by equipment and allergens. The model must cite them as [S1], [S2]…",
+   "nodeIds": [
+    "function:backend/app/retrieval.py:search",
+    "class:backend/app/retrieval.py:BM25",
+    "config:backend/app/data/exercises.json",
+    "concept:rag"
+   ]
+  },
+  {
+   "order": 7,
+   "title": "Context management",
+   "description": "Each prompt contains the profile, the formula targets, the selected muscle, the last 10 messages and the retrieved documents; older messages drop out to keep prompts small.",
+   "nodeIds": [
+    "concept:context-window",
+    "function:backend/app/chatbot.py:build_retrieval_query"
+   ]
+  },
+  {
+   "order": 8,
+   "title": "The LLM layer and its fallback",
+   "description": "llm.py speaks the OpenAI format to OpenRouter. The user can pick Auto or one of 5 models; on error, 429 or empty answer the next model is tried, and if all fail the offline composer answers from the documents. The UI badge shows who answered.",
+   "nodeIds": [
+    "function:backend/app/llm.py:chat_with_model",
+    "function:backend/app/chatbot.py:mock_generate",
+    "concept:openrouter"
+   ]
+  },
+  {
+   "order": 9,
+   "title": "Numbers come from code",
+   "description": "Calories, protein, carbs, fat and water are computed with Mifflin-St Jeor in nutrition.py, never guessed by the AI.",
+   "nodeIds": [
+    "function:backend/app/nutrition.py:compute_targets",
+    "function:backend/app/nutrition.py:bmr"
+   ]
+  },
+  {
+   "order": 10,
+   "title": "Multimodal features",
+   "description": "A photo goes to a vision model (machine, plate or barcode); barcodes use Open Food Facts; the fridge chef writes meals and generates a dish picture.",
+   "nodeIds": [
+    "function:backend/app/chatbot.py:identify_equipment",
+    "function:backend/app/chatbot.py:lookup_barcode_yuka",
+    "function:backend/app/chatbot.py:fridge_meals"
+   ]
+  },
+  {
+   "order": 11,
+   "title": "Data storage",
+   "description": "Users, conversations, messages (with rating, flags and latency) and feedback are SQLAlchemy tables; SQLite locally, temporary on Vercel, Postgres via DATABASE_URL.",
+   "nodeIds": [
+    "file:backend/app/models.py",
+    "file:backend/app/db.py"
+   ]
+  },
+  {
+   "order": 12,
+   "title": "Tests and evaluation",
+   "description": "32 pytest tests check maths, retrieval and guardrails; the 16-question evaluation measures answer quality (100 % offline, 87.5 % with the live model).",
+   "nodeIds": [
+    "file:backend/tests/test_units.py",
+    "file:backend/tests/test_api.py",
+    "file:backend/eval/run_eval.py"
+   ]
+  },
+  {
+   "order": 13,
+   "title": "Deployment and automation",
+   "description": "Two Vercel projects host the platform and the API. n8n workflows call the API for daily coaching e-mails, a CRM and a Telegram coach.",
+   "nodeIds": [
+    "service:vercel-frontend",
+    "service:vercel-backend",
+    "pipeline:automation/workflow_daily_coach.json",
+    "pipeline:automation/workflow_telegram_coach.json"
+   ]
+  }
+ ]
+}
