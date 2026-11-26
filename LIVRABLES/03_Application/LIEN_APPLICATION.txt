@@ -1,0 +1,9 @@
+GymBuddy AI - lien de l'application web
+
+Site : https://gymbuddy-ai-phi.vercel.app
+API (documentation interactive) : https://gymbuddy-api-zeta.vercel.app/docs
+
+Bot Telegram (automatisation n8n) : @gymbudddyBot
+
+Créer un compte sur le site (e-mail ou Google), remplir le profil, puis suivre les scénarios de USER_GUIDE.md.
+Le bouton « Report » du site permet de signaler un problème.

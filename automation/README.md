@@ -1,126 +1,195 @@
-# GymBuddy AI — SaaS CRM & Daily Coaching Automation (n8n)
+# GymBuddy AI : automatisation n8n
 
-This folder contains all deliverables for the **Automation (n8n)** part of the assignment (`this what should be/PROJET.txt`):
-- **Exported n8n CRM + AI Workflow (v2 — 16 nodes):** [`workflow_gymbuddy_crm.json`](./workflow_gymbuddy_crm.json)
-- **Ready-to-import SaaS CRM Template (Google Sheets / Airtable / Notion):** [`crm_template.csv`](./crm_template.csv)
-- **NEW — Telegram Coach bot + reminders (65 nodes):** [`workflow_telegram_coach.json`](./workflow_telegram_coach.json), setup and credits in [`TELEGRAM_COACH.md`](./TELEGRAM_COACH.md) (sheet headers: `tg_*.csv`)
-- *(Legacy v1 basic workflow kept for comparison: [`workflow_daily_coach.json`](./workflow_daily_coach.json))*
-- Installation & usage guide, technical environment, dependencies, architecture diagram, credentials registry, and transferability test template (below).
+Ce dossier contient tout ce qu'il faut pour présenter, installer et tester l'automatisation n8n du projet GymBuddy AI. Chaque section ci-dessous répond à un point demandé dans `this what should be/PROJET.txt`.
 
----
-
-## 1. Objective & SaaS Features
-This 16-node n8n workflow automates **both member coaching and SaaS CRM operations** for GymBuddy AI:
-1. **Dual Triggers:** Runs automatically every morning at **07:30** (`Schedule Trigger`) **OR** on-demand via `POST /webhook/gymbuddy-crm-sync` (for live demos or instant new-lead sync).
-2. **Live API Integration:** Fetches opted-in users (`/api/automation/daily-digest`) AND real-time SaaS health KPIs (`/api/admin/stats`: user count, 👍/👎 chatbot ratings, user bug reports) from our deployed Vercel API (`https://gymbuddy-api-zeta.vercel.app`).
-3. **CRM Lead Scoring & Segmentation Engine:** Scores every member from `0–100` based on plan tier, training commitment, diet restrictions, and injuries, and classifies them into 3 actionable SaaS CRM segments:
-   - `VIP_PRO` — Active Pro subscribers → VIP workout + progressive overload brief + direct link to **In-Gym Chrono**.
-   - `HOT_LEAD` — High-intent Free users (score ≥ 55) → daily plan + personalized pitch to try **GymBuddy Pro**.
-   - `NURTURE` — Free beginners → warm, guilt-free onboarding message + link to the **Interactive Muscle Map**.
-4. **Google Sheets SaaS CRM Sync:** Automatically **upserts** (creates or updates by `email`) every member in the `CRM_Members` sheet (`crm_template.csv`).
-5. **Segmented AI Generation + Branded HTML Email:** Calls OpenRouter (`openrouter/free`) with a tailored prompt per segment, wraps the output in a **Metrya-branded HTML email** (`#08130D` dark forest header + `#DAF85A` electric lime CTA button), and includes a **deterministic fallback** if the LLM API fails.
-6. **Admin Daily KPI & Bug-Report Alert:** Aggregates emails sent, segment counts, AI success rate, chatbot 👍/👎 ratings, and open bug reports, and sends an **Admin Ops Digest** email to the team.
+| Point demandé | Où le trouver |
+|---|---|
+| Workflow n8n exporté en JSON | [`workflow_telegram_coach_media.json`](./workflow_telegram_coach_media.json) (workflow principal) et deux workflows secondaires (section 1) |
+| README : installation et utilisation | Sections 5 et 6 de ce fichier |
+| Environnement technique | Section 3 |
+| Dépendances | Section 3 |
+| Schéma de l'architecture | Section 2 et [`architecture_telegram.png`](./architecture_telegram.png) |
+| Registre des credentials et des variables | Section 4 |
+| Test de transférabilité | Section 7 et [`TEST_TRANSFERABILITE.md`](./TEST_TRANSFERABILITE.md) |
+| Captures du workflow et de la conversation Telegram | Dossier [`captures/`](./captures/) |
 
 ---
 
-## 2. Architecture Diagram (Trigger → Processing → CRM → AI → External Integrations → Result)
+## 1. Les workflows livrés
+
+| Fichier | Nœuds | Rôle |
+|---|---|---|
+| `workflow_telegram_coach_media.json` | 83 | **Workflow principal, en service sur n8n Cloud.** Bot Telegram de coaching : profil, plan du jour, séance, exercices avec animations, recettes du site avec leurs photos, lecture de photos, code-barres, restaurants, suivi des séances et des repas, messages programmés. |
+| `workflow_gymbuddy_crm.json` | 16 | Score de 0 à 100 pour chaque membre du site, trois segments (VIP_PRO, HOT_LEAD, NURTURE), mise à jour d'une feuille Google Sheets, e-mails par segment, rapport d'indicateurs. Documentation : [`README_CRM_en.md`](./README_CRM_en.md). |
+| `workflow_daily_coach.json` | 8 | Première version : message de coaching quotidien par e-mail. Gardé pour comparaison. |
+
+`workflow_telegram_coach.json` (88 nœuds) et [`TELEGRAM_COACH.md`](./TELEGRAM_COACH.md) décrivent la version précédente du bot, qui dépendait des variables d'environnement. Elle est remplacée par la version « Media ».
+
+Le bot fonctionne sans compte sur le site. Commandes principales :
+
+| Message | Résultat |
+|---|---|
+| `/start`, `/help` | Bienvenue et liste des commandes ; l'utilisateur est enregistré dans `TG_Subscribers` |
+| `/profile 22 male 175cm 72kg muscle gym 3 days halal allergy peanuts injury knee` | Profil (mots dans n'importe quel ordre, anglais ou français) et objectifs caloriques calculés avec la formule du site (Mifflin-St Jeor) |
+| `/today` | Plan du jour écrit par le modèle |
+| `/workout` | Séance du jour : séries, répétitions, repos |
+| `/muscle chest` | Meilleurs exercices pour un muscle, avec animation |
+| `/recipe`, `/recipe chicken`, `/recipe poulet riz` | Une des 147 recettes du site avec sa vraie photo, ses macronutriments, ses ingrédients et ses étapes. Les recettes qui contiennent un allergène du membre ou qui ne respectent pas son régime sont écartées |
+| `/cook poulet, riz, brocoli` | Deux recettes écrites par le modèle et la photo de la recette du site la plus proche |
+| Photo (assiette, machine, étiquette) | Identifiée par un modèle de vision, avec ou sans question |
+| `/scan 3017620422003` ou photo d'un code-barres | Produit vérifié dans Open Food Facts |
+| `/eat Rabat` ou position GPS | Recherche de restaurants sains sur Google Maps et conseils de commande |
+| `/done` | Enregistre la séance, met à jour la série de jours (badges à 3, 7, 14, 30 et 50 jours) |
+| `/log 2 oeufs et du pain` | Calories et macronutriments estimés, ligne ajoutée dans `TG_Meals` |
+| `/report` | Bilan nutritionnel du jour |
+| `/stop` | Met en pause les messages programmés |
+| Tout autre texte | Réponse du coach IA, qui connaît le profil, la série et les objectifs |
+
+Messages programmés (fuseau Africa/Casablanca) : plan du matin à 07:30, rappel à 20:30 pour ceux qui devaient s'entraîner et n'ont pas envoyé `/done` (sans appel au modèle), bilan hebdomadaire le dimanche à 19:00.
+
+---
+
+## 2. Schéma de l'architecture
+
+Image : [`architecture_telegram.png`](./architecture_telegram.png). Le schéma suit la chaîne demandée : déclencheur, traitement, IA, intégrations externes, résultat.
 
 ```mermaid
 flowchart LR
-  T1["Trigger 1<br/>Daily 07:30 Cron"] --> API1["Fetch Opted-In Members<br/>GET /api/automation/daily-digest"]
-  T2["Trigger 2<br/>Webhook POST<br/>/gymbuddy-crm-sync"] --> API1
-  T1 --> KPI["Fetch SaaS KPIs<br/>GET /api/admin/stats"]
-  T2 --> KPI
-
-  API1 --> IF{"Count > 0?"}
-  IF -- "Yes" --> SPLIT["Split Out<br/>users[]"]
-  --> SCORE["Processing<br/>CRM Lead Scoring<br/>& Segmentation"]
-
-  SCORE --> CRM["External Integration<br/>Google Sheets CRM<br/>Upsert CRM_Members"]
-  SCORE --> SW{"Switch<br/>Route by Segment"}
-
-  SW -- "VIP_PRO" --> AI1["AI (OpenRouter)<br/>VIP Pro Brief"]
-  SW -- "HOT_LEAD" --> AI2["AI (OpenRouter)<br/>Coaching + Pro Offer"]
-  SW -- "NURTURE" --> AI3["AI (OpenRouter)<br/>Beginner Nurture"]
-
-  AI1 --> HTML["Processing & Fallback<br/>Branded HTML Email"]
-  AI2 --> HTML
-  AI3 --> HTML
-
-  HTML --> SMTP["External Integration<br/>Send Branded Email (SMTP)"]
-  SMTP --> AGG["Result Aggregation<br/>SaaS Ops Summary"]
-  KPI --> AGG
-  AGG --> ADMIN["External Integration<br/>Admin Daily KPI Alert"]
+  subgraph D["1. Déclencheurs"]
+    TG["Telegram Trigger<br/>message, photo, position"]
+    S1["Schedule 07:30"]
+    S2["Schedule 20:30"]
+    S3["Schedule dimanche 19:00"]
+  end
+  subgraph T["2. Traitement (nœuds Code, If, Switch)"]
+    P["Parse Command<br/>commande, arguments, photo"]
+    M["Membre : lecture / création<br/>dans TG_Subscribers"]
+    R{"Route Command<br/>une branche par commande"}
+  end
+  subgraph IA["3. IA (HTTP Request, API de modèles)"]
+    L["Modèle de langage<br/>plan, coach, macros, recettes"]
+    V["Modèle de vision<br/>lecture des photos"]
+  end
+  subgraph X["4. Intégrations externes"]
+    API["API GymBuddy<br/>/api/nutrition/overview<br/>147 recettes + photos"]
+    GS["Google Sheets<br/>TG_Subscribers, TG_Workouts, TG_Meals"]
+    OFF["Open Food Facts<br/>codes-barres"]
+    GIF["Animations d'exercices<br/>(GitHub)"]
+    GM["Lien Google Maps"]
+  end
+  subgraph O["5. Résultat"]
+    OUT["Réponse Telegram<br/>texte, photo, animation"]
+  end
+  TG --> P --> M --> R
+  S1 & S2 & S3 --> GS
+  R --> L & V & API & OFF & GIF & GM
+  R --> GS
+  L & V & API & OFF & GIF & GM --> OUT
+  GS --> L
 ```
 
-### Data exchanges between stages
-- **Backend API → n8n:** JSON `{ date, count, users: [{ user_id, email, name, plan, goal, today_workout, equipment, calories, protein_g, water_l, diet, allergies, injuries }] }` and `/api/admin/stats` `{ users, assistant_messages, thumbs_up, thumbs_down, feedback[] }`.
-- **CRM Scoring → Google Sheets:** Upserts 15 columns matched on `email` (`user_id`, `name`, `email`, `plan`, `segment`, `lead_score`, `churn_risk`, `goal`, `equipment`, `calories_target`, `protein_g`, `today_workout`, `last_contacted`, `status`, `next_action`).
-- **Segment Router → OpenRouter AI:** Sends user JSON + segment-specific coaching system prompt; receives `{ choices: [{ message: { content } }] }`.
-- **HTML Builder → SMTP:** Outputs `{ email, subject, body_html, used_ai, segment, sent_at }`.
+### Données échangées entre les étapes
 
----
-
-## 3. SaaS CRM Template (`crm_template.csv`)
-Import [`crm_template.csv`](./crm_template.csv) into **Google Sheets** (*File → Import → Upload*), rename the tab to **`CRM_Members`**, and copy the Sheet ID from the URL (`https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit`).
-
-| Column | Purpose | Example |
+| De | Vers | Données |
 |---|---|---|
-| `user_id`, `name`, `email` | Member identity (upsert key = `email`) | `achraf.demo@example.com` |
-| `plan` | SaaS tier (`free` or `pro`) | `pro` |
-| `segment` | Auto-assigned lifecycle segment | `VIP_PRO`, `HOT_LEAD`, `NURTURE` |
-| `lead_score` | Computed conversion/engagement score (`0–100`) | `92` |
-| `churn_risk` | Retention indicator (`Low`, `Medium`, `High`) | `Low` |
-| `goal`, `equipment`, `calories_target`, `protein_g`, `today_workout` | Fitness personalization data from GymBuddy API | `build_muscle`, `2650`, `Push` |
-| `last_contacted`, `status`, `next_action` | CRM pipeline tracking & next follow-up | `Active Pro`, `Deliver VIP coaching` |
+| Telegram | Parse Command | Objet `message` de Telegram : `chat.id`, `from.first_name`, `text` ou `caption`, `photo[]`, `location` |
+| Parse Command | Route Command | `{ chat_id, first_name, text, command, args, photo_file_id, lang_hint, lat, lon }` |
+| Google Sheets | Traitement | Ligne du membre : `chat_id`, profil (`profile_json`), objectifs, série, dernier jour d'entraînement |
+| Traitement | API de modèles | `{ model, messages: [system, user], temperature, max_tokens }` ; réponse `choices[0].message.content` |
+| Traitement | Modèle de vision | Image Telegram convertie en data URL + question éventuelle |
+| API GymBuddy | `/recipe`, `/cook` | Liste des recettes : nom, calories, protéines, glucides, lipides, ingrédients, étapes, `image_url` |
+| Open Food Facts | `/scan` | `product_name`, `nutriments` |
+| Traitement | Telegram | `sendMessage` (texte), `sendPhoto` (URL de la photo de la recette), `sendAnimation` (exercice) |
+
+Chaque nœud HTTP et Google Sheets continue en cas d'erreur et chaque message IA a un texte de repli, donc le membre reçoit toujours une réponse.
 
 ---
 
-## 4. Technical Environment & Dependencies
-- **n8n:** v1.60+ (local `npx n8n`, Docker, or n8n Cloud)
-- **Nodes used:** 100% built-in core nodes (`scheduleTrigger`, `webhook`, `httpRequest`, `if`, `splitOut`, `code`, `googleSheets`, `switch`, `emailSend`) — **zero community plugins required**.
-- **GymBuddy Backend API:** Deployed live at `https://gymbuddy-api-zeta.vercel.app` (or locally at `http://localhost:8000`).
-- **AI Provider:** OpenRouter (`openrouter/free`, free tier) or Google Gemini.
-- **CRM & Mail:** Google Sheets (free Google account) + Gmail SMTP (App Password) or Mailtrap/Brevo.
+## 3. Environnement technique et dépendances
+
+**Environnement**
+
+- n8n Cloud (recommandé : l'adresse publique du webhook Telegram fonctionne directement). Instance utilisée par l'équipe : `gymbuddyy.app.n8n.cloud`.
+- Ou n8n auto-hébergé (version 1.60 ou plus, testé en 2.46) avec une adresse HTTPS publique : `npx n8n start --tunnel`, ngrok ou cloudflared. Le script [`start-n8n.ps1`](./start-n8n.ps1) lance n8n en local sous Windows.
+- Un compte Telegram et un compte Google.
+
+**Dépendances**
+
+| Dépendance | Détail |
+|---|---|
+| Nœuds n8n | Uniquement des nœuds intégrés : Telegram Trigger (1), Telegram (8), Schedule Trigger (3), Code (40), Google Sheets (12), HTTP Request (10), If (8), Switch (1). Aucun plugin communautaire |
+| API GymBuddy | `https://gymbuddy-api-zeta.vercel.app/api/nutrition/overview` (recettes et photos), sans clé |
+| API de modèles | OpenRouter, `https://openrouter.ai/api/v1/chat/completions` (7 nœuds HTTP : texte et vision) |
+| Open Food Facts | `https://world.openfoodfacts.org/api/v2/product/<code>.json`, sans clé |
+| Animations d'exercices | Jeu public d'images hébergé sur GitHub, sans clé |
+| Google Sheets | Une feuille avec les onglets `TG_Subscribers`, `TG_Workouts`, `TG_Meals` (en-têtes : [`tg_subscribers.csv`](./tg_subscribers.csv), [`tg_workouts.csv`](./tg_workouts.csv), [`tg_meals.csv`](./tg_meals.csv)) |
+| Variables d'environnement | Aucune. n8n Cloud bloque `$env`, donc les adresses sont écrites dans les nœuds et les secrets sont dans les credentials n8n |
 
 ---
 
-## 5. Credentials & Environment Variables Registry
+## 4. Registre des credentials et des variables
 
-| Name | Type | Service | Required permissions | How to set up on a new machine |
-|---|---|---|---|---|
-| `GYMBUDDY_API_URL` | Env var | GymBuddy FastAPI | Read API | Default: `https://gymbuddy-api-zeta.vercel.app` (or `http://localhost:8000`) |
-| `GYMBUDDY_API_KEY` | Env var (secret) | GymBuddy FastAPI | `X-API-Key` for `/daily-digest` & `/admin/stats` | Must match `AUTOMATION_API_KEY` (`change-me` by default) |
-| `LLM_ENDPOINT` | Env var | OpenRouter / Gemini | Chat completions | Default: `https://openrouter.ai/api/v1/chat/completions` |
-| `LLM_MODEL` | Env var | OpenRouter | Model inference | Default: `openrouter/free` |
-| `LLM_API_KEY` | Env var (secret) | OpenRouter | Text generation | Create free key at https://openrouter.ai/keys |
-| `CRM_GOOGLE_SHEET_ID` | Env var | Google Sheets | Read/Write `CRM_Members` | Copy the ID from your imported Google Sheet URL |
-| `SMTP_FROM_EMAIL` | Env var | Gmail / SMTP | Send email | Sender address (e.g. `yourname@gmail.com`) |
-| `ADMIN_ALERT_EMAIL` | Env var | Gmail / SMTP | Receive KPI digest | Admin/team email address |
-| `GymBuddy Google Sheets` | n8n Credential (`googleSheetsOAuth2Api`) | Google Cloud OAuth2 | `spreadsheets` scope | In n8n → **Credentials → New → Google Sheets OAuth2** → sign in with Google |
-| `GymBuddy SMTP` | n8n Credential (`smtp`) | Gmail / Brevo / Mailtrap | Send email | Host `smtp.gmail.com`, port `465`, SSL/TLS ON, user = Gmail, password = 16-char Google App Password |
+Les credentials ne sont pas exportés avec le JSON : il faut les recréer sur chaque nouvelle machine.
 
----
+| Nom dans n8n | Type | Service | Droits requis | Nœuds | Création sur une nouvelle machine |
+|---|---|---|---|---|---|
+| `Telegram account` | Telegram API | Bot Telegram | Recevoir les messages envoyés au bot, envoyer messages, photos et animations | 9 | Telegram : ouvrir `@BotFather`, envoyer `/newbot`, choisir un nom, copier le jeton. Dans n8n : *Credentials, Create, Telegram API*, coller le jeton |
+| `Google Sheets account` | Google Sheets OAuth2 API | Google Sheets | Lire et écrire les trois onglets `TG_` (portée `spreadsheets`) | 12 | n8n : *Credentials, Create, Google Sheets OAuth2 API*, *Sign in with Google*, accepter l'accès. En auto-hébergé, il faut d'abord un client OAuth dans Google Cloud Console |
+| `Header Auth account` | Header Auth | API de modèles (OpenRouter) | Appels de génération de texte et de vision | 7 | Créer une clé sur https://openrouter.ai/keys. n8n : *Credentials, Create, Header Auth*, nom `Authorization`, valeur `Bearer <clé>` |
 
-## 6. Installation & Usage on a New Machine
-1. Import [`crm_template.csv`](./crm_template.csv) into Google Sheets and name the tab `CRM_Members`.
-2. Start n8n (Docker or `npx n8n start`) with the environment variables above.
-3. Open `http://localhost:5678` → **Workflows → Import from File** → select [`workflow_gymbuddy_crm.json`](./workflow_gymbuddy_crm.json).
-4. Attach your **GymBuddy Google Sheets** and **GymBuddy SMTP** credentials on the corresponding nodes.
-5. Make sure at least one user on https://gymbuddy-ai-phi.vercel.app has an email + **"Opt in to the daily coaching email"** enabled.
-6. Click **Test Workflow** (or trigger the Webhook URL) and verify:
-   - The member row is created/updated in `CRM_Members` with `segment` and `lead_score`.
-   - The member receives the branded dark-forest & electric-lime HTML coaching email.
-   - You receive the **Admin Daily KPI Digest** email.
+| Valeur à adapter | Où | Comment |
+|---|---|---|
+| Identifiant de la feuille Google | 12 nœuds Google Sheets | Ouvrir le JSON dans un éditeur de texte, remplacer `REPLACE_WITH_GOOGLE_SHEET_ID` par l'identifiant de votre feuille (la partie de l'URL entre `/d/` et `/edit`), *Remplacer tout* |
+| Fuseau horaire | *Workflow settings* | Choisir `Africa/Casablanca` (sinon les messages de 07:30, 20:30 et 19:00 partent à l'heure du serveur) |
+| Adresse de l'API GymBuddy | Nœuds HTTP des recettes | Déjà écrite (`https://gymbuddy-api-zeta.vercel.app`). À changer seulement si l'API est déployée ailleurs |
 
 ---
 
-## 7. Transferability Test (To Fill After Testing With a Friend)
-> **Requirement from `PROJET.txt`:** Invite a friend (giving them only these documents + the JSON + `crm_template.csv`) to set up and run the automation on their own machine, then write a reflection on the experience.
+## 5. Installation sur une nouvelle machine (environ 15 minutes)
 
-- **Tester name & date:** _[Fill after test]_
-- **Environment used:** _[e.g., Windows 11 + n8n + Google Sheets + Gmail SMTP]_
-- **Time taken to set up:** _[e.g., 20 minutes]_
-- **What worked smoothly:** _[e.g., CSV import into Google Sheets, JSON workflow import, live Vercel API call]_
-- **Friction points encountered:** _[e.g., Google OAuth2 / Gmail App Password setup]_
-- **Improvements made to the docs after the test:** _[list what you clarified]_
+1. **Créer le bot** : dans Telegram, `@BotFather`, `/newbot`, copier le jeton.
+2. **Préparer la feuille** : créer une feuille Google avec trois onglets nommés exactement `TG_Subscribers`, `TG_Workouts`, `TG_Meals`, et coller dans chacun la ligne d'en-tête du fichier CSV correspondant.
+3. **Mettre l'identifiant de la feuille** dans le JSON (section 4, *Remplacer tout*).
+4. **Importer** : n8n, *Workflows, Import from File*, choisir `workflow_telegram_coach_media.json`.
+5. **Créer les trois credentials** (section 4) et les choisir sur les nœuds qui affichent un avertissement rouge.
+6. **Régler le fuseau horaire** : *Workflow settings*, `Africa/Casablanca`.
+7. **Publier** le workflow (bouton *Publish* en haut à droite). Telegram n'envoie les messages qu'à un workflow publié. Un seul workflow peut utiliser le même bot à la fois : si n8n affiche « There is a conflict with one of the webhooks », dépublier l'autre copie.
+8. **Tester** : envoyer `/start` au bot, puis les messages de la section 6.
+
+## 6. Utilisation et vérification
+
+Envoyer au bot, dans cet ordre :
+
+1. `/start`
+2. `/profile 22 male 175cm 72kg muscle gym 3 days`
+3. `/today` puis `/workout`
+4. `/muscle chest`
+5. `/recipe chicken` : la photo de la recette du site doit arriver
+6. une photo de votre assiette
+7. `3017620422003`
+8. `/eat Rabat`
+9. `/done`, `/log 2 oeufs et du pain`, `/report`
+
+Dans n8n, l'onglet *Executions* doit montrer une exécution réussie par message. Dans la feuille, `TG_Subscribers`, `TG_Workouts` et `TG_Meals` doivent avoir de nouvelles lignes. Pour tester les messages programmés sans attendre, ouvrir le nœud *Every Day 07:30* et cliquer *Execute step*.
+
+Limites à connaître : le fournisseur de modèles limite le nombre de requêtes par jour (le rappel du soir, `/workout`, `/recipe`, `/eat`, `/done` et `/report` n'appellent pas le modèle) ; la recherche de restaurants renvoie un lien Google Maps et non une liste vérifiée.
+
+---
+
+## 7. Test de transférabilité
+
+**Premier transfert (fait)** : du n8n local (Windows, `npx n8n start`, n8n 2.46) vers n8n Cloud, les 24 et 25 novembre 2026.
+
+| Point observé | Résultat |
+|---|---|
+| Ce qui a fonctionné sans aide | Import du JSON, tous les nœuds (aucun plugin), webhook Telegram sans tunnel |
+| Points de blocage | 52 utilisations de `$env` bloquées par n8n Cloud ; credentials non exportés avec le JSON ; fuseau horaire différent ; étape photo qui plantait |
+| Corrections | `$env` remplacés par des adresses dans les nœuds et des credentials ; fuseau Africa/Casablanca ; étape photo reconstruite ; ce README complété (registre des credentials, identifiant de la feuille, conflit de webhook) |
+
+**Second transfert (à faire avec un ami)** : donner à une personne extérieure à l'équipe uniquement ce dossier `automation/`, la laisser installer le bot sur son propre compte n8n avec son propre bot Telegram, et remplir la fiche [`TEST_TRANSFERABILITE.md`](./TEST_TRANSFERABILITE.md). La réflexion qui en sort va dans le tableau 12 du rapport.
+
+---
+
+## Crédits
+
+Le bot part de deux modèles communautaires publiés sur n8n.io : n° 7756 de John Alejandro Silva (suivi des repas avec Telegram et Google Sheets) et n° 16969 de Dr. Firas (coach Telegram avec profil et historique). Aucun des deux n'envoie de messages programmés ni ne connaît le programme d'entraînement de l'utilisateur. Notre version ajoute les recettes du site GymBuddy avec leurs photos, la lecture de photos, les séries, les badges, le rappel du soir et le bilan hebdomadaire.
