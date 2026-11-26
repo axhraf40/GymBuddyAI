@@ -21,9 +21,3 @@ Projet d'IA générative textuelle, encadré par Dr. Hasnâ CHAABI. Ce dossier r
 | `04_Modeles_Google_Sheets/` | En-têtes des onglets `TG_Subscribers`, `TG_Workouts`, `TG_Meals` et modèle du CRM | Nécessaire à l'installation |
 | `05_Test_Transferabilite/` | `TEST_TRANSFERABILITE.md` : fiche à donner à l'ami et questions pour la réflexion | Test de transférabilité |
 | `06_Captures/` | Workflow sur n8n Cloud, journal des exécutions, conversation Telegram | Preuves de fonctionnement |
-
-## Reste à faire avant la présentation
-
-- [ ] Faire le test de transférabilité avec un ami (fiche dans `05_Automatisation_n8n/05_Test_Transferabilite/`) et ajouter la réflexion au rapport (tableau 12) et au README.
-- [ ] Envoyer le lien de `03_Application/LIEN_APPLICATION.txt` à l'enseignante la veille de la présentation.
-- [ ] Vérifier que le bot Telegram est actif sur n8n Cloud et que le site répond, le jour même.
